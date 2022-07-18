@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.sys.SysFileMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.sys.SysFile">
+		<id column="fileid" property="fileid"/>
+		<id column="filename" property="filename"/>
+		<id column="keyid" property="keyid"/>
+		<id column="path" property="path"/>
+		<id column="realname" property="realname"/>
+		<id column="serverid" property="serverid"/>
+		<id column="url" property="url"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		fileid,filename,keyid,path,realname,serverid,url
+	</sql>
+	
+	<select id="selectSysFileByPage" resultType="org.sg.loginweb.entity.sys.SysFile">
+		select f.fileid,f.filename,f.serverid,f.createplayerid,f.createdate,p.realname createplayername 
+		from sys_file f left join player p on f.createplayerid=p.id
+		<where>
+			<if test="sysFileBo.fileid!=null and sysFileBo.fileid!=''">
+				and f.fileid=#{sysFileBo.fileid}
+			</if>
+			<if test="sysFileBo.keyid!=null and sysFileBo.keyid!=''">
+				and f.keyid=#{sysFileBo.keyid}
+			</if>
+			<if test="sysFileBo.serverid!=null and sysFileBo.serverid!=''">
+				and f.serverid=#{sysFileBo.serverid}
+			</if>
+			<if test="sysFileBo.createplayerid!=null and sysFileBo.createplayerid!=-1">
+				and f.createplayerid=#{sysFileBo.createplayerid}
+			</if>
+			<if test="sysFileBo.createdate1_sql!=null and sysFileBo.createdate2_sql==null">
+				<if test="sysFileBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(f.createdate,'%Y%m%d') = #{sysFileBo.createdate1_sql}
+				</if>
+				<if test="sysFileBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(f.createdate,1,10), 'unixepoch','+${sysFileBo.gmt} hours') = #{sysFileBo.createdate1_sql}
+				</if>
+	    	</if>
+			<if test="sysFileBo.createdate1_sql!=null and sysFileBo.createdate2_sql!=null">
+				<if test="sysFileBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(f.createdate,'%Y%m%d') BETWEEN #{sysFileBo.createdate1_sql} and #{sysFileBo.createdate2_sql}
+				</if>
+				<if test="sysFileBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(f.createdate,1,10), 'unixepoch','+${sysFileBo.gmt} hours') BETWEEN #{sysFileBo.createdate1_sql} and #{sysFileBo.createdate2_sql}
+				</if>
+	    	</if>
+	    	<if test="sysFileBo.filename!=null and sysFileBo.filename!=''">
+	    		and f.filename like '%${sysFileBo.filename}%'
+	    	</if>
+		</where>
+	</select>
+
+</mapper>

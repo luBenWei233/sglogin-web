@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.sys.SysFileBakMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.sys.SysFileBak">
+		<id column="fileid" property="fileid"/>
+		<id column="filename" property="filename"/>
+		<id column="keyid" property="keyid"/>
+		<id column="path" property="path"/>
+		<id column="realname" property="realname"/>
+		<id column="serverid" property="serverid"/>
+		<id column="url" property="url"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		fileid,filename,keyid,path,realname,serverid,url
+	</sql>
+
+
+</mapper>

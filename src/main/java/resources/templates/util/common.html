@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<div th:fragment="jsAndCss">
+		<meta charset="utf-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta name="description" content="">
+	    <meta name="author" content="">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	    <link rel="shortcut icon" href="#" type="image/png">
+		<link th:href="@{/css/sys_main.css}" rel="stylesheet">
+		<script type="text/javascript" th:src="@{/bootstrap/js/jquery.min.js}" ></script>
+	    <script type="text/javascript" th:src="@{/script/jquery.md5.js}" ></script>
+	    <script type="text/javascript" th:src="@{/script/layer.js}" ></script>
+	    <link th:href="@{/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+		<script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}" ></script>
+	</div>
+	<div th:fragment="top" >
+		<script type="text/javascript">
+			$(function(){
+				setInterval(function(){
+					var w_array = new Array("星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六");
+		            var d = new Date();
+		            var year = d.getFullYear();
+		            var month = d.getMonth() + 1;
+		            var day = d.getDate();
+		            var week = d.getDay();
+		            var h = d.getHours();
+		            var mins = d.getMinutes();
+		            var s = d.getSeconds();
+		            if (month < 10) month = "0" + month;
+		            if (day < 10) day = "0" + day;
+		            if (h < 10) h = "0" + h;
+		            if (mins < 10) mins = "0" + mins;
+		            if (s < 10) s = "0" + s;
+		            var shows = "<a href='#'>本地时间： <span>" + year + "-" + month + "-" + day + " " + h + ":" + mins + ":" + s + " " +             w_array[week] + "</span></a>";
+		            $("#locationTime").html(shows);
+				},1000);
+				
+				$("#closeWin").click(function(){
+					var userAgent = navigator.userAgent;
+					if (userAgent.indexOf("Firefox") != -1 || userAgent.indexOf("Chrome") != -1) {
+					    location.href = "about:blank";
+					} else {
+					    window.opener = null;
+					    window.open('', '_self');
+					}
+					window.close();
+		            return false;
+				});
+			});
+		</script>
+			<nav class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+			  <div class="container-fluid">
+			    <div class="navbar-header">
+			      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+			        <span class="sr-only">Toggle navigation</span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			      </button>
+			      <a class="navbar-brand" href="#">欢迎回来</a>
+			    </div>
+			
+			    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			      <ul class="nav navbar-nav">
+			        <li th:class="${active==1}?'active':''"><a href="/player/selectPlayerByPage">玩家管理</a></li>
+			        <li th:class="${active==2}?'active':''"><a href="/playerBan/selectPlayerBanByPage">封号记录</a></li>
+			        <li th:class="${active==3}?'active':''"><a href="/course/selectCourseByPage">教程管理</a></li>
+			        <li th:class="${active==4}?'active':''"><a href="/notice/selectNoticeByPage">公告管理</a></li>
+			      </ul>
+			      <ul class="nav navbar-nav">
+			        <li class="dropdown" th:class="${active>=5}?'active':''">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">系统管理<span class="caret"></span></a>
+			          <ul class="dropdown-menu">
+			            <li th:class="${active==5}?'active':''"><a href="/sysGroup/getSysGroupVoByListPage">字典类型</a></li>
+			            <li th:class="${active==6}?'active':''"><a href="/sysDatabook/sysDatabookList">字典数据</a></li>
+			            <li th:class="${active==7}?'active':''"><a href="/sysFile/selectSysFileByPage">文件管理</a></li>
+			            <li th:class="${active==8}?'active':''"><a href="/sysConfig/selectSysConfigByPage">系统配置</a></li>
+			            <li th:class="${active==9}?'active':''"><a href="/sysConfig/system">服务器状态</a></li>
+			          </ul>
+			        </li>
+			      </ul>
+			      <ul class="nav navbar-nav navbar-right">
+			        <li id="locationTime"></li>
+			        <li class="dropdown">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">[[${session.player.realname}]]<span class="caret"></span></a>
+			          <ul class="dropdown-menu">
+			            <li><a target="_blank" th:href="@{/player/selectPlayerById?id=}+${session.player.id}">修改密码</a></li>
+			            <li role="separator" class="divider"></li>
+			            <li><a href="/player/exitLogin">退出登陆</a></li>
+			          </ul>
+			        </li>
+			      </ul>
+			    </div>
+			  </div>
+			  </div>
+			</nav>
+			<div style="height:65px;overflow: hidden;"></div>
+		</div>
+		
+		
+		<div class="col-md-12 column" th:fragment="page">
+		<script type="text/javascript">
+			$(function(){
+				$(".commomPageJump").click(function(){
+					$("input[name=resPage]").val(this.text);
+					$("#commonFormPage").submit();
+					return false;
+				});
+				
+				$("#pagePrev").click(function(){
+					var page="[[${datas.currentPage}]]"-1;
+					if(page>0){
+						$("input[name=resPage]").val(page);
+						$("#commonFormPage").submit();
+					}
+					return false;
+				});
+				
+				$("#pageNext").click(function(){
+					var page=("[[${datas.currentPage}]]"*1)+(1*1);
+					if(page<="[[${datas.totalPage}]]"){
+						$("input[name=resPage]").val(page);
+						$("#commonFormPage").submit();
+					}
+					return false;
+				});
+				
+				$("#commomResPageSize").change(function(){
+					$("input[name=resPage]").val(1);
+					$("input[name=resPageSize]").val($("#commomResPageSize").val());
+					$("#commonFormPage").submit();
+				});
+				
+				$("#commomResPageSize").val("[[${datas.currentNumber}]]");
+				
+				$("#commonSelectPage").click(function(){
+					var reg=/^[0-9]*$/;
+					var page=$("#commonSelectPageInput").val();
+					if(reg.test(page)){
+						if(page>0 && page<="[[${datas.totalPage}]]"*1){
+							$("input[name=resPage]").val(page);
+							$("#commonFormPage").submit();
+						}else{
+							layer.open({
+								title: '提示'
+								,content: '该页码不存在！'
+							});
+						}
+					}else{
+						layer.open({
+							title: '提示'
+							,content: '请传入数字！'
+						});
+					}
+				});
+				
+				$("#pageIndex").click(function(){
+					$("input[name=resPage]").val(1);
+					$("#commonFormPage").submit();
+				});
+				
+				$("#pageLast").click(function(){
+					$("input[name=resPage]").val("[[${datas.totalPage}]]");
+					$("#commonFormPage").submit();
+				});
+			});
+		</script>
+			<ul class="pagination">
+						<li id="pagePrev">
+							 <a href="#">上一页</a>
+						</li>
+						<li id="pageIndex">
+							 <a href="#">首页</a>
+						</li>
+<!-- 						<li th:each="i :${#numbers.sequence(1,datas.totalPage)}"  -->
+<!-- 							th:class="${datas.currentPage==i}? 'active' :''"> -->
+<!-- 							 <a class="commomPageJump" href="#">[[${i}]]</a> -->
+<!-- 						</li> -->
+						<li th:if="${datas.totalPage<=10}" th:each="i :${#numbers.sequence(1,datas.totalPage)}" 
+							th:class="${datas.currentPage==i}? 'active' :''">
+							 <a class="commomPageJump" href="#">[[${i}]]</a>
+						</li>
+						<li th:if="${datas.totalPage>10 && datas.currentPage<10}" th:each="i :${#numbers.sequence(1,10)}" 
+							th:class="${datas.currentPage==i}? 'active' :''">
+							 <a class="commomPageJump" href="#">[[${i}]]</a>
+						</li>
+						
+						<li th:if="${datas.totalPage>10 && datas.currentPage==10 && datas.totalPage>=datas.currentPage+5 }" th:each="i :${#numbers.sequence(datas.currentPage-5,15)}" 
+							th:class="${datas.currentPage==i}? 'active' :''">
+							 <a class="commomPageJump" href="#">[[${i}]]</a>
+						</li>
+						
+						<li th:if="${datas.totalPage>10 && datas.currentPage>10 && datas.totalPage>=datas.currentPage+5 }" th:each="i :${#numbers.sequence(datas.currentPage-5,datas.currentPage+5)}" 
+							th:class="${datas.currentPage==i}? 'active' :''">
+							 <a class="commomPageJump" href="#">[[${i}]]</a>
+						</li>
+						
+						<li th:if="${datas.totalPage>10 && datas.currentPage>=10 && datas.totalPage<datas.currentPage+5 }" th:each="i :${#numbers.sequence(datas.currentPage-(10-(datas.totalPage-datas.currentPage)),datas.totalPage)}" 
+							th:class="${datas.currentPage==i}? 'active' :''">
+							 <a class="commomPageJump" href="#">[[${i}]]</a>
+						</li>
+						
+						<li id="pageLast">
+							 <a href="#">尾页</a>
+						</li>
+						<li>
+							 <a href="#" id="pageNext">下一页</a>
+						</li>
+					</ul>
+					<div class="form-inline">
+						<div class="form-group">
+							<label for="exampleInputName2">总页数:</label>
+							<input th:value="${datas.totalPage}"  disabled="disabled" type="text" class="form-control" autocomplete="off" style="width: 65px;"/>
+							<label for="exampleInputName2">页</label>
+						</div>
+						<div class="form-group">
+							<label for="exampleInputName2">数据总量:</label>
+							<input th:value="${datas.totalNumber}"  disabled="disabled" type="text" class="form-control" autocomplete="off" style="width: 65px;"/>
+							<label for="exampleInputName2">条</label>
+						</div>
+						<div class="form-group">
+							<label for="exampleInputName2">显示条数:</label>
+							<select class="form-control" id="commomResPageSize">
+						      <option value="5">每页:5条</option>
+							  <option value="10">每页:10条</option>
+							  <option value="15">每页:15条</option>
+							  <option value="20">每页:20条</option>
+							  <option value="25">每页:25条</option>
+							  <option value="30">每页:30条</option>
+							  <option value="40">每页:40条</option>
+							  <option value="50">每页:50条</option>
+							  <option value="100">每页:100条</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="exampleInputName2">跳转:</label>
+							<input id="commonSelectPageInput" th:value="${datas.currentPage}" type="text" class="form-control" autocomplete="off" style="width: 65px;"/>
+							<label for="exampleInputName2">页</label>
+						</div>
+						<button id="commonSelectPage" class="btn btn-primary">查询</button>
+					</div>
+				</div>
+				
+<nav class="navbar navbar-default navbar-fixed-bottom" id="editTool" th:fragment="editTool">
+	<script type="text/javascript">
+		//编辑提示
+		function editToolShow(){
+			if($(window).width()>=1000){
+				$("#pc").css("display","block");
+				$("#mobile").css("display","none");
+			}else{
+				$("#mobile").css("display","block");
+				$("#pc").css("display","none");
+			}
+			$("#editTool").css("display","block");
+		}
+		function editToolClose(){
+			$("#editTool").css("display","none");
+		}
+	</script>
+	<div class="container editTool" id="pc">
+		<p>关闭</p>
+		<ul>
+			<li><p>HTML基础使用</p></li>
+			<li>&lt;strong&gt;文字加粗&lt;/strong&gt;</li>
+			<li>效果：<strong>文字加粗</strong></li>
+			<li>&lt;span&gt;普通文本&lt;/span&gt;</li>
+			<li>效果：<span>普通文本</span>（用于嵌套）</li>
+			<li>&lt;p&gt;段落，也可以用作换行&lt;/p&gt;</li>
+			<li><p>效果：段落，也可以用作换行</p></li>
+			<li>&lt;a href="https://www.baidu.com" target="_blank"&gt;前往百度&lt;/a&gt;</li>
+			<li>效果：<a href="https://www.baidu.com" target="_blank">前往百度</a></li>
+		</ul>
+		<ul>
+			<li><p>HTML进阶使用（组合起来使用）</p></li>
+			<li>&lt;p&gt;这块的文本没有加粗，&lt;strong&gt;文字加粗&lt;/strong&gt;段落结束。&lt;/p&gt;</li>
+			<li><p>效果：这块的文本没有加粗，<strong>文字加粗</strong>段落结束。</p></li>
+			<li>&lt;span style="color:#FF0000"&gt;有颜色的字&lt;/span&gt;</li>
+			<li>效果：<span style="color:#FF0000">有颜色的字</span>&nbsp;(可以在任意标签中加入style="color:#颜色代码")</li>
+			<li>&lt;a href="https://www.baidu.com" target="_blank" style="color:#9900CC"&gt;www.baidu.com&lt;/a&gt;</li>
+			<li>效果：<a href="https://www.baidu.com" target="_blank" style="color:#9900CC">www.baidu.com</a></li>
+			<li>html基础教程：<a href="https://www.runoob.com/html/html-tutorial.html" target="_blank">https://www.runoob.com/html/html-tutorial.html</a></li>
+			<li>html颜色代码：<a href="https://www.runoob.com/html/html-colors.html" target="_blank">https://www.runoob.com/html/html-colors.html</a></li>
+		</ul>
+		<ul>
+			<li><p>HTML常用颜色代码</p></li>
+			<li style="background-color: #000000"><span style="color:#FFFFFF">#000000</span></li>
+			<li style="background-color: #FF0000"><span>#FF0000</span></li>
+			<li style="background-color: #00FF00"><span>#00FF00</span></li>
+			<li style="background-color: #0000FF"><span>#0000FF</span></li>
+			<li style="background-color: #FFFF00"><span>#FFFF00</span></li>
+			<li style="background-color: #00FFFF"><span>#00FFFF</span></li>
+			<li style="background-color: #FF00FF"><span>#FF00FF</span></li>
+			<li style="background-color: #C0C0C0"><span>#C0C0C0</span></li>
+			<li style="background-color: #FFFFFF"><span>#FFFFFF</span></li>
+			<li style="background-color: #CC6633"><span>#CC6633</span></li>
+		</ul>
+	</div>
+	<div class="container mobile" id="mobile">
+		<p>关闭</p>
+		<ul>
+			<li><p>HTML基础使用</p></li>
+			<li>&lt;strong&gt;文字加粗&lt;/strong&gt;</li>
+			<li>效果：<strong>文字加粗</strong></li>
+			<li>&lt;span&gt;普通文本&lt;/span&gt;</li>
+			<li>效果：<span>普通文本</span>（用于嵌套）</li>
+			<li>&lt;p&gt;段落，也可以用作换行&lt;/p&gt;</li>
+			<li><p>效果：段落，也可以用作换行</p></li>
+			<li>&lt;a href="https://www.baidu.com" target="_blank"&gt;前往百度&lt;/a&gt;</li>
+			<li>效果：<a href="https://www.baidu.com" target="_blank">前往百度</a></li>
+		</ul>
+	</div>
+</nav>
+<nav th:fragment="adminFoot">
+	<div class="adminFoot">
+		<p>SGLogin-web玩家管理系统、作者联系方式：1048885612@qq.com、B站：哔理_大帅哥</p>
+		<p>此程序采用Eclipse Public License 1.0开源协议，您可以免费商用再发布！</p>
+	</div>
+</nav>
+</body>
+</html>

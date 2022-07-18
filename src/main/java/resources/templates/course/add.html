@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-教程处理-步骤1</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			$("#commonData").submit(function(){
+				if($("input[name=title]").val()==''){
+					layer.open({
+						title: '提示'
+						,content: '“教程标题”不得为空！'
+					});
+					return false;
+				}
+				if($("input[name=releasedate]").val()==''){
+					layer.open({
+						title: '提示'
+						,content: '请选择发布日期！'
+					});
+					return false;
+				}
+				
+				$.ajax({
+		            url: "/course/insertCourse",
+		            type: "post",
+		            data: $('#commonData').serialize(),
+		            success: function (result) {
+		            	if(result.code>=1){
+		            		window.location.href="/course/addNext?id="+result.data;
+		            	}else{
+		            		layer.msg('操作失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+		  <a class="btn btn-default" href="/course/selectCourseByPage">查看教程数据列表</a>
+		  <a class="btn btn-success" href="/course/addPage">添加/修改教程数据</a>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					添加教程
+				</h3>
+				<p>生命不可能有两次，但许多人连一次也不善于度过。——吕凯特</p>
+			</div>
+			<div class="col-md-8 column">
+				<form role="form" method="post" action="#" id="commonData">
+					<input type="hidden" name="id" th:value="${courseVo.id}">
+					<div class="form-group">
+						 <label>教程标题</label>
+						 <input th:value="${courseVo.title}" name="title" type="text" maxlength="200" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						 <label>教程类型</label>
+						 <select  th:field="${courseVo.coursetype}" th:switch="${courseVo.coursetype}" class="form-control" name="coursetype">
+						 	<option th:each="s:${sysDatabookBos}" th:value="${s.id}"  th:text="${s.value}" ></option>
+						 </select>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">发布日期</label>
+						 <div>
+							 <input th:value="${courseVo.releasedateT}" type="datetime-local" step="01" name="releasedate" class="form-control"/>
+						 </div>
+					</div>
+					<div class="form-group">
+						<label class="radio-inline">
+						  <input th:checked="${courseVo.valid==1}" type="radio" name="valid" id="inlineRadio1" value="1"> 正式发布
+						</label>
+						<label class="radio-inline">
+						  <input th:checked="${courseVo.valid==0}" type="radio" name="valid" id="inlineRadio2" value="0"> 草稿
+						</label>
+					</div>
+					<div class="form-group">
+						<p>*教程页面的默认教程(只能有一个，设置多个最后一个生效)</p>
+						<label class="radio-inline">
+						  <input th:checked="${courseVo.defaultif==1}" type="radio" name="defaultif" id="inlineRadio3" value="1"> 是
+						</label>
+						<label class="radio-inline">
+						  <input th:checked="${courseVo.defaultif==0}" type="radio" name="defaultif" id="inlineRadio4" value="0"> 否
+						</label>
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary btn-lg">下一步</button>
+						<button type="reset" class="btn btn-warning btn-lg">重置</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

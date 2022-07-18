@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.PlayerBanMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.PlayerBan">
+		<id column="bantime" property="bantime"/>
+		<id column="enddate" property="enddate"/>
+		<id column="handleid" property="handleid"/>
+		<id column="id" property="id"/>
+		<id column="playerid" property="playerid"/>
+		<id column="startdate" property="startdate"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		bantime,enddate,handleid,id,playerid,startdate
+	</sql>
+
+	<select id="selectPlayerBanByPage" resultType="org.sg.loginweb.entity.PlayerBan">
+		select b.id,b.playerid,p.realname playeridshow,b.createdate,b.handleid,(select realname from player where id=b.handleid) handleidshow,
+		b.startdate,b.enddate,b.bantime
+		from player_ban b left join player p on b.playerid=p.id 
+		<where>
+			<if test="playerBanBo.handleid!=null and playerBanBo.handleid!=''">
+				and b.handleid = #{playerBanBo.handleid}
+			</if>
+			<if test="playerBanBo.playeridshow!=null and playerBanBo.playeridshow!=''">
+				and p.realname = #{playerBanBo.playeridshow}
+			</if>
+			<if test="playerBanBo.reasonid!=null and playerBanBo.reasonid!=-1">
+				and b.reasonid = #{playerBanBo.reasonid}
+			</if>
+			<if test="playerBanBo.createdate1_sql!=null and playerBanBo.createdate2_sql==null">
+				<if test="playerBanBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(b.createdate,'%Y%m%d') = #{playerBanBo.createdate1_sql}
+				</if>
+				<if test="playerBanBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(b.createdate,1,10,'+${playerBanBo.gmt} hours'), 'unixepoch') = #{playerBanBo.createdate1_sql}
+				</if>
+	    	</if>
+	    	<if test="playerBanBo.createdate1_sql!=null and playerBanBo.createdate2_sql!=null">
+	    		<if test="playerBanBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(b.createdate,'%Y%m%d') BETWEEN #{playerBanBo.createdate1_sql} and #{playerBanBo.createdate2_sql}
+				</if>
+				<if test="playerBanBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(b.createdate,1,10), 'unixepoch','+${playerBanBo.gmt} hours') BETWEEN #{playerBanBo.createdate1_sql} and #{playerBanBo.createdate2_sql}
+				</if>
+	    	</if>
+		</where>
+		order by b.createdate desc
+	</select>
+	
+	<select id="selectPlayerBanById" resultType="org.sg.loginweb.entity.PlayerBan">
+		select b.id,b.playerid,p.realname playeridshow,b.handleid,(select realname from player where id=b.handleid) handleidshow,
+		b.startdate,b.enddate,b.bantime,b.createdate,s.value reasonidshow
+		from player_ban b left join player p on b.playerid=p.id left join sys_databook s on b.reasonid=s.id
+		where b.id=#{id}
+	</select>
+
+</mapper>

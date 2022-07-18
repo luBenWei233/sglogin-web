@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<title>[[${pageCache.webname}]]</title>
+	<link th:href="@{/css/main.css}" rel="stylesheet">
+	<style type="text/css">
+		.showDiv{
+			margin-bottom: 8px;
+		}
+		.h1{
+			font-size: 24px;
+		}
+		.h1:hover{
+			cursor: pointer;
+		}
+		.h2{
+			font-size: 20px;
+			line-height: 40px;
+		}
+	</style>
+	<script type="text/javascript" th:src="@{/bootstrap/js/jquery.min.js}" ></script>
+	<script type="text/javascript">
+		$(function(){
+			
+			var $page=1;
+			getNoticeList($page);
+			function getNoticeList($pageParam){
+				$.ajax({
+				    type: 'get',
+				    url: "/notice/noticeShow?page="+$pageParam+"&id=[[${id}]]", 
+				    success: function (data) {
+				    	if(data!=''){
+				            $("#notice").append(data);
+				    	}else{
+				    		$("#notice").append("<p>[[${pageCache.noticenotmore}]]</p>");
+				    	}
+			        },
+		            error : function() {
+						alert("[[${pageCache.syserror}]]");
+		           }
+			    })
+			}
+			$("#noticeMore").click(function(){
+				$page=$page*1+1*1;
+				getNoticeList($page);
+			});
+			//回首页
+			$("#home").click(function(){
+				window.open("/");
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class="container">
+		<nav><h1 class="h1" id="home" th:text="${pageCache.noticepagename}">我的世界嘉儿服务器1.16.4公告</h1></nav>
+	</div>
+	<div class="container" id="notice"></div>
+	<div class="container">
+		<div style="width: 120px;margin: 0px auto;">
+			<button class="btn btn-primary btn-lg" id="noticeMore" th:value="${pageCache.noticemore}">查看更多</button>
+		</div>
+	</div>
+	<footer><div class="footer" th:utext="${pageCache.copyright}"></div></footer>
+</body>
+</html>

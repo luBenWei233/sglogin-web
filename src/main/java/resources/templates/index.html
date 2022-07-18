@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<title>[[${pageCache.webname}]]-帐号注册</title>
+	<link th:href="@{css/main.css}" rel="stylesheet">
+	<script type="text/javascript" th:src="@{script/jquery3.5.0.js}" ></script>
+	<script type="text/javascript">
+		$(function(){
+			createCode();
+			var $realname=$("input[name=realname]");
+			$realname.blur(function(){
+				checkPlayerConut();
+			}).focus(function(){
+				$realname.parent().parent().next().find("p").text("");
+			});
+			
+			var $pwd=$("input[name=password]");
+			$pwd.blur(function(){
+				checkPwd();
+			}).focus(function(){
+				$pwd.parent().parent().next().find("p").text("");
+			});
+			var $pwd2=$("input[name=password2]");
+			$pwd2.blur(function(){
+				checkPwd2();
+			}).focus(function(){
+				$pwd2.parent().parent().next().find("p").text(" ");
+			});
+			
+			var $code=$("input[name=code]");
+			$code.blur(function(){
+				checkCode();
+			}).focus(function(){
+				$code.parent().parent().parent().parent().next().next().find("p").text("");
+			});
+			
+			//帐号验证
+			function checkPlayerConut(){
+				var $aconut=$realname.val();
+				if($aconut.length<"[[${pageCache.playerlength1}]]" || $aconut.length>"[[${pageCache.playerlength2}]]"){
+					//帐号不得少于3位或大于20位！
+					$realname.parent().parent().next().find("p").text("[[${pageCache.playerlengthalert}]]");
+					return false;
+				}
+				//正则 ^[A-Za-z0-9_]+$
+				var $checkAconut=/[[${pageCache.playername}]]/;
+				if(!$checkAconut.test($aconut)){
+					//帐号只能有英文、数字、下滑线！
+					$realname.parent().parent().next().find("p").text("[[${pageCache.playernamealert}]]");
+					return false;
+				}
+				var $existUser=0;
+				$.ajax({
+			        type: "GET",
+			        contentType: "application/x-www-form-urlencoded",
+			        dataType: "json",
+			        async:false,
+			        url: "player/playerExist?username="+$aconut,
+			        success:function(count){
+			             if(count>0){
+			            	 // 此帐号已经被人注册！
+			            	$realname.parent().parent().next().find("p").text("[[${pageCache.playerexist}]]");
+			 				$existUser=count;
+			             }
+			         }
+			    });
+				if($existUser>0){
+					return false;
+				}
+				return true;
+			}
+			//验证密码
+			function checkPwd(){
+				//密码验证
+				var $mima=$("input[name=password]").val();
+				if($mima.length<"[[${pageCache.passlength1}]]" || $mima.length>"[[${pageCache.passlength2}]]"){
+					// 密码不得少于6位或大于16位！
+					$pwd.parent().parent().next().find("p").text("[[${pageCache.passlengthalert}]]");
+					return false;
+				}
+				var $checkPwd=/\s/;
+				if($checkPwd.test($mima)){
+					// 密码中不能有空格
+					$pwd.parent().parent().next().find("p").text("[[${pageCache.passnotspace}]]");
+					return false;
+				}
+				// ^[A-Za-z0-9&!@#$%^&*+-.]+$
+				var $checkPwd2=/[[${pageCache.pass}]]/;
+				if(!$checkPwd2.test($mima)){
+					// 密码只能有字母数字及&!@#$%^&*+-.
+					$pwd.parent().parent().next().find("p").text("[[${pageCache.passalert}]]");
+					return false;
+				}
+				return true;
+			}
+			//验证密码2
+			function checkPwd2(){
+				var $mima1=$pwd.val();
+				var $mima2=$pwd2.val();
+				if($mima1!=$mima2){
+					// 两次密码输入不一致！
+					$pwd2.parent().parent().next().find("p").text("[[${pageCache.checkpwd2}]]");
+					return false;
+				}
+				return true;
+			}
+			
+			//验证码
+			function checkCode(){
+				var $text=$code.val();
+				if($text.length!=4){
+					// 验证码格式不正确！
+					$code.parent().parent().parent().parent().next().next().find("p").text("[[${pageCache.code}]]");
+					return false;
+				}
+				return true;
+			}
+			
+			$("#regForm").submit(function(){
+				if(checkPlayerConut()==false){
+					return false;
+				}
+				if(checkPwd()==false){
+					return false;
+				}
+				if(checkPwd2()==false){
+					return false;
+				}
+				if(checkCode()==false){
+					return false;
+				}
+				$.ajax({
+		             type: "POST",
+		             contentType: "application/x-www-form-urlencoded",
+		             dataType: "json",
+		             data: $('#regForm').serialize(),
+		             url: "player/insertPlayerForPlayer",
+		             success:function(result){
+		                 if(result==1){
+		                	 $("#successAlert").css("display","block");
+		                	 // 登陆服务器时输入：<strong>/l "+$pwd.val()+ "</strong> 登陆游戏(小写的L)
+		                	 $("#successAlert div strong").html("/l "+$pwd.val()+" ");
+		                	 createCode();
+		                	 // 注册成功,帐号为：
+		                	 alert("[[${pageCache.regsuccessalert}]]"+$realname.val());
+		                 }else if(result==401){
+		                	 // 您没有输入验证码！
+		                	 alert("[[${pageCache.result401}]]");
+		             	 }else if(result==400){
+		             		 // 验证码输入错误，请重新输入！
+		                	 alert("[[${pageCache.result400}]]");
+		             	 }else if(result==402){
+		             		 // 您少输入了参数，四个空都得填！
+		                	 alert("[[${pageCache.result402}]]");
+		             	 }else if(result==403){
+		             		 // 帐号不得少于3位或大于20位！
+		                	 alert("[[${pageCache.playerlengthalert}]]");
+		             	 }else if(result==404){
+		             		 // 帐号只能有英文、数字、下滑线！
+		                	 alert("[[${pageCache.playernamealert}]]");
+		             	 }else if(result==405){
+		             		 // 密码只能有字母数字及&!@#$%^&*+-.
+		                	 alert("[[${pageCache.passalert}]]");
+		             	 }else if(result==406){
+		             		 // 两次密码输入不一致！
+		                	 alert("[[${pageCache.checkpwd2}]]");
+		             	 }else if(result==407){
+		             		 // 密码不得小于6位或大于16位
+		                	 alert("[[${pageCache.passlengthalert}]]");
+		             	 }else if(result==408){
+		             		 // 服务器内部错误，未生成验证码，请稍候重试！
+		                	 alert("[[${pageCache.result408}]]");
+		             	 }else if(result==409){
+		             		 // 服务器已经存在该用户，请换个名字吧！
+		                	 alert("[[${pageCache.playerexist}]]");
+		             	 }else if(result==3){
+		             		 // 不是吧,阿sir，你居然没有IP！
+		                	 alert("[[${pageCache.result3}]]");
+		             	 }else if(result==411){
+		             		 // 服务器暂时停止注册
+		                	 alert("[[${pageCache.regvalidtitle}]]");
+		             	 }else if(result==412){
+		             		 // 本服务器每人每天最多注册2个账号
+		                	 alert("[[${pageCache.reglimittitle}]]");
+		             	 }else{
+		             		 $("#faildAlert").css("display","block");
+		             		 // 注册失败，请稍候重试！！！
+		                	 alert("[[${pageCache.regfaildalert}]]");
+		                 }
+		             },error:function(){
+		            	 // 服务器错误，请稍后重试！
+		            	 alert("[[${pageCache.syserror}]]");
+		             }
+		         });
+				return false;
+			});
+			
+			$("#checkCode").click(function(){
+				createCode();
+			});
+			
+			function createCode(){
+				$.ajax({
+		             type: "POST",
+		             url: "util/getCheckCode",
+		             contentType: "application/x-www-form-urlencoded",
+		             dataType:'json',
+		             success:function(data){
+		                 $("#checkCode").attr('src',"data:image/png;base64,"+data);
+		             },error:function(data){
+		            	 // 服务器未生成验证码，请稍后重试！
+		            	 alert("[[${pageCache.result408}]]");
+		             }
+		         });
+			}
+		});
+	</script>
+</head>
+<body>
+	<div class="zhongDiv">
+		<h1 class="H1Title" style="margin-bottom: 30px;" th:text="${pageCache.regpagename}">参数设置有误，请检查系统配置</h1>
+		<form action="#" method="post" id="regForm">
+			<div class="panl">
+				<div>
+					<ul class="inputText">
+						<li>
+							<div>
+								<!-- 用户名（不能有中文哦） -->
+								<input name="realname" type="text" th:placeholder="${pageCache.playertitle}"/>
+							</div>
+						</li>
+						<li>
+							<p>&nbsp;</p>
+						</li>
+					</ul>
+					<ul class="inputText">
+						<li>
+							<div>
+								<!-- 密码 -->
+								<input name="password" type="password" th:placeholder="${pageCache.passtitle}"/>
+							</div>
+						</li>
+						<li>
+							<p>&nbsp;</p>
+						</li>
+					</ul>
+					<ul class="inputText">
+						<li>
+							<div>
+								<!-- 重复密码 -->
+								<input name="password2" type="password" th:placeholder="${pageCache.pass2title}"/>
+							</div>
+						</li>
+						<li>
+							<p>&nbsp;</p>
+						</li>
+					</ul>
+					<ul class="input2Value">
+						<li>
+							<ul class="inputText">
+								<li>
+									<div>
+										<!-- 验证码 -->
+										<input name="code" type="text" th:placeholder="${pageCache.codetitle}" maxlength="4"/>
+									</div>
+								</li>
+							</ul>
+						</li>
+						<li>
+							<img id="checkCode" class="checkCode" th:alt="${pageCache.codetitle}"/>
+						</li>
+						<li>
+							<p>&nbsp;</p>
+						</li>
+					</ul>
+					
+					<button class="btn" type="submit" th:text="${pageCache.regbtn}">确认注册</button>
+					
+					<a class="btn2" href="/course/help" target="_blank" th:text="${pageCache.helpbtn}">不会注册、下载、登陆请点击我</a>
+				</div>
+			</div>
+		</form>
+		<div class="panl2"  id="successAlert">
+			<h2 th:text="${pageCache.successalert}">注册成功</h2>
+			<div th:utext="${pageCache.regsuccessshow}"></div>
+		</div>
+		<div class="panl3"  id="faildAlert">
+			<h2 th:text="${pageCache.faildalert1}">注册失败</h2>
+			<p th:text="${pageCache.faildalert2}">注册失败，请稍候再试！或联系服主！</p>
+		</div>
+		<div class="panl" style="margin-top:15px;">
+			<ul class="li2Value">
+				<li th:text="${pageCache.contact}">Q群:277346754,服主Q:1048885612</li>
+				<li th:utext="${pageCache.joinqq}">QQ群</li>
+			</ul>
+		</div>
+	</div>
+</body>
+</html>

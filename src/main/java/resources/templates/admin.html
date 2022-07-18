@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-管理员登陆</title>
+    <meta th:include="util/common :: jsAndCss"/>
+    <style type="text/css">
+    	/*屏幕小于500px时*/
+		@media screen and (max-width: 500px){
+		    .login{
+				width: 100%;
+			}
+		}
+		/*屏幕大于500px时*/
+		@media screen and (min-width:500px ) {
+			.login{
+				width: 370px;
+			}
+		}
+    </style>
+	<script type="text/javascript">
+		$(function(){
+			
+			$("input[name=username]").val(getCookie("username"));
+			$("input[name=password]").val(getCookie("password"));
+			if(getCookie("username")!="" && getCookie("password")!=""){
+				 $("input[name=remember]").prop("checked",true);
+			}
+			
+			createCode();
+			$("#checkCode").click(function(){
+				createCode();
+			});
+				
+			function createCode(){
+				$.ajax({
+			        type: "POST",
+			        url: "util/getCheckCode",
+			        contentType: "application/x-www-form-urlencoded",
+			        dataType:'json',
+			        success:function(data){
+			             $("#checkCode").attr('src',"data:image/png;base64,"+data);
+			        },error:function(data){
+			             alert("服务器未生成验证码，请稍后重试！");
+			        }
+			    });
+			}
+			
+			$("#playerSign").submit(function(){
+				$.ajax({
+		            url: "/player/playerSign",
+		            type: "POST",
+		            data: {
+		            	username:$("input[name=username]").val(),
+						password:$("input[name=password]").val(),
+						code:$("input[name=code]").val()
+		            },
+		            dataType: "json",
+		            success: function (data) {
+		            	if(data==200){
+		            		if($("input[name=remember]").prop('checked')){
+		            			var date = new Date();
+		            			var exdays=30;
+		            			date.setTime(date.getTime()+(exdays*24*60*60*1000));
+		            			document.cookie="username="+$("input[name=username]").val()+";expires="+date.toGMTString();
+		            			document.cookie="password="+$("input[name=password]").val()+";expires="+date.toGMTString();
+		            		}else{
+		            			var date = new Date();
+		            			document.cookie="username=null;expires="+date.toGMTString();
+		            			document.cookie="password=null;expires="+date.toGMTString();
+		            		}
+		            		window.location.href="/player/selectPlayerByPage";
+		            	}else if(data==1){
+		            		layer.open({
+								title: '提示'
+								,content: '服务器未加成验证码'
+							});
+		            	}else if(data==2){
+		            		layer.open({
+								title: '提示'
+								,content: '你输入的验证码有误'
+							});
+		            	}else{
+		            		layer.open({
+								title: '提示'
+								,content: '登陆失败，账号或密码错误'
+							});
+		            	}
+		            	createCode();
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+				return false;
+			});
+			
+			
+			function getCookie(cname){
+			  var name = cname + "=";
+			  var ca = document.cookie.split(';');
+			  for(var i=0; i<ca.length; i++) {
+			    var c = ca[i].trim();
+			    if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+			  }
+			  return "";
+			}
+		});
+	</script>
+	
+</head>
+
+<body class="div_100h">
+	<div class="div_100h">
+		<div class="container back_color div_100h">
+			<div class="page-header">
+				 <h1>SGLogin登陆插件<small>玩家管理后台-管理员登陆</small></h1>
+			</div>
+			<div class="container login">
+				<form class="form-signin" method="post" action="/player/playerSign" id="playerSign">
+					<h2 class="form-signin-heading">登陆</h2>
+					<h3><span class="label label-success">我的IP:</span>[[${ip}]]</h3>
+					<label for="inputEmail" class="sr-only">账号</label>
+					<input type="text" class="form-control" placeholder="账号" name="username" 
+						required autofocus maxlength="50" autocomplete="off"/> 
+					<label for="inputPassword" class="sr-only">密码</label> 
+					<input type="password" name="password" class="form-control" 
+						placeholder="密码" required  maxlength="50" autocomplete="off"/>
+						
+					<div class="row clearfix">
+						<div class="col-md-6 column">
+							<label class="sr-only">验证码</label> <input name="code" 
+							type="text" class="form-control" placeholder="验证码"
+							required autofocus maxlength="4" autocomplete="off"/>
+						</div>
+						<div class="col-md-6 column">
+							<img id="checkCode" class="checkCode" src=""/>
+						</div>
+					</div>
+					<div class="checkbox">
+						<label> <input type="checkbox" name="remember">
+							记住我
+						</label>
+					</div>
+					<button class="btn btn-lg btn-primary btn-block" type="submit">登陆</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

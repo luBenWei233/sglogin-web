@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-字典数据列表</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			var $text=null;
+			$(".updateCommon").focus(function(){
+				$text=$(this).val();
+			});
+			
+			$(".updateCommon").blur(function(){
+				if($text==$(this).val()){
+					return false;
+				}
+				var formData = new FormData();
+				formData.append("id",$(this).prev().val());
+				formData.append("value",$(this).val());
+				$.ajax({
+			        url: "/sysConfig/updateSysConfig",
+			        type: "post",
+			        data: formData,
+			        processData: false,
+				    contentType: false,
+			        success: function (data) {
+			            if(data==1){
+			            	layer.msg('更新成功！');
+			            }else{
+			            	layer.msg('更新失败！');
+			            }
+			        },
+		            error : function() {
+		                layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+		            }
+			    })
+			});
+			return false;
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+			<div>
+				<h3>
+					查看系统配置列表
+					<small>少壮不努力，老大徒伤悲。——《汉乐府长歌行》</small>
+				</h3>
+			</div>
+			<div>
+				<form class="form-inline" action="/sysConfig/selectSysConfigByPage" method="get" id="commonFormPage">
+				  <div class="form-group">
+				    <label for="exampleInputName2">配置名:</label>
+				    <input th:value="${sysConfig.remarks}" name="remarks" type="text" class="form-control" id="exampleInputName2" autocomplete="off" />
+				  </div>
+				<div class="form-group">
+				  	<label for="exampleInputName2">是否可以修改:</label>
+				    <select th:field="${sysConfig.change}" th:switch="${sysConfig.change}" name="change" class="form-control">
+				      <option value="-1">--全部--</option>
+					  <option value="1">可以</option>
+					  <option value="0">不可以</option>
+					</select>
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${sysConfig.resPage}"/>
+				  	<input name="resPageSize" th:value="${sysConfig.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>配置名</th>
+						<th>配置值</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="s:${datas.data}">
+						<td th:text="${s.remarks}" style="width: 20%;"></td>
+						<td style="width: 75%;">
+							<input th:value="${s.id}" type="hidden"/>
+							<textarea class="updateCommon" th:text="${s.value}" th:disabled="${s.change==0}" style="width: 100%;"></textarea>
+						</td>
+						<td>
+							<a class="btn btn-primary btn-xs" target="_blank" th:href="@{/sysConfig/selectSysConfigById?id=}+${s.id}" role="button">详情</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div class="row clearfix">
+					<div class="col-md-4 column">
+						<h1>&nbsp;</h1>
+					</div>
+					<div class="col-md-8 column">
+						<div th:replace="util/common :: page"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

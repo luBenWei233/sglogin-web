@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-系统配置详情</title>
+    <meta th:include="util/common :: jsAndCss"/>
+    <script type="text/javascript">
+		$(function(){
+			var $text=null;
+			$(".updateCommon").focus(function(){
+				$text=$(this).val();
+			});
+			
+			$(".updateCommon").blur(function(){
+				if($text==$(this).val()){
+					return false;
+				}
+				var formData = new FormData();
+				formData.append("id",$(this).prev().val());
+				formData.append("value",$(this).val());
+				$.ajax({
+			        url: "/sysConfig/updateSysConfig",
+			        type: "post",
+			        data: formData,
+			        processData: false,
+				    contentType: false,
+			        success: function (data) {
+			            if(data==1){
+			            	layer.msg('更新成功！');
+			            }else{
+			            	layer.msg('更新失败！');
+			            }
+			        },
+		            error : function() {
+		                layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+		            }
+			    })
+			});
+			return false;
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					系统配置详情
+				</h3>
+				<p>如果一个人不知道他要驶向哪头，那么任何风都不是顺风。——塞涅卡</p>
+			</div>
+			<div class="col-md-8 column">
+				<div class="form-group">
+					<label for="exampleInputEmail1">配置名</label>
+					<input th:value="${sysConfig.remarks}" type="text" class="form-control" disabled="disabled" />
+				</div>
+				<div class="form-group">
+					<label for="exampleInputEmail1">配置值</label>
+					<input th:value="${sysConfig.id}" type="hidden"/>
+					<textarea class="updateCommon" th:text="${sysConfig.value}" th:disabled="${sysConfig.change==0}" rows="5" style="width: 100%;"></textarea>
+				</div>
+				<div class="form-group">
+					<label class="radio-inline">
+						 <input th:checked="${sysConfig.change==1}" type="radio" name="change" disabled="disabled" id="inlineRadio1" value="1"> 可以修改
+					</label>
+					<label class="radio-inline">
+						 <input th:checked="${sysConfig.change==0}" type="radio" name="change" disabled="disabled" id="inlineRadio2" value="0"> 不可以修改　
+					</label>
+				</div>
+				<div class="form-group">
+					<label for="exampleInputEmail1">更新人</label>
+					<input th:value="${sysConfig.updateplayername}" type="text" class="form-control" disabled="disabled" />
+				</div>
+				<div class="form-group">
+					<label for="exampleInputEmail1">更新日期</label>
+					<input th:value="${sysConfig.updatedateShow}" type="text" class="form-control" disabled="disabled" />
+				</div>
+				<div>
+					<button id="closeWin" class="btn btn-danger btn-lg">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

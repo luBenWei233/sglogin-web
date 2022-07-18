@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-添加系统字典数据</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			var $realname=$("input[name=realname]");
+			$realname.blur(function(){
+				checkPlayerConut();
+			});
+			
+			var $pwd=$("input[name=password]");
+			$pwd.blur(function(){
+				checkPwd();
+			});
+			var $pwd2=$("input[name=password2]");
+			$pwd2.blur(function(){
+				checkPwd2();
+			});
+			var $email=$("input[name=email]");
+			$email.blur(function(){
+				checkEmail();
+			});
+			
+			//帐号验证
+			function checkPlayerConut(){
+				var $aconut=$realname.val();
+				if($aconut.length<"[[${pageCache.playerlength1}]]" || $aconut.length>"[[${pageCache.playerlength2}]]"){
+					//帐号不得少于3位或大于20位！
+					layer.msg("[[${pageCache.playerlengthalert}]]");
+					return false;
+				}
+				//正则 ^[A-Za-z0-9_]+$
+				var $checkAconut=/[[${pageCache.playername}]]/;
+				if(!$checkAconut.test($aconut)){
+					//帐号只能有英文、数字、下滑线！
+					layer.msg("[[${pageCache.playernamealert}]]");
+					return false;
+				}
+				var $existUser=0;
+				$.ajax({
+			        type: "GET",
+			        contentType: "application/x-www-form-urlencoded",
+			        dataType: "json",
+			        async:false,
+			        url: "/player/playerExist?username="+$aconut,
+			        success:function(count){
+			             if(count>0){
+			            	 // 此帐号已经被人注册！
+			            	layer.msg("[[${pageCache.playerexist}]]");
+			 				$existUser=count;
+			             }
+			         }
+			    });
+				if($existUser>0){
+					return false;
+				}
+				return true;
+			}
+			//验证密码
+			function checkPwd(){
+				//密码验证
+				var $mima=$("input[name=password]").val();
+				if($mima.length<"[[${pageCache.passlength1}]]" || $mima.length>"[[${pageCache.passlength2}]]"){
+					// 密码不得少于6位或大于16位！
+					layer.msg("[[${pageCache.passlengthalert}]]");
+					return false;
+				}
+				var $checkPwd=/\s/;
+				if($checkPwd.test($mima)){
+					// 密码中不能有空格
+					layer.msg("[[${pageCache.passnotspace}]]");
+					return false;
+				}
+				// ^[A-Za-z0-9&!@#$%^&*+-.]+$
+				var $checkPwd2=/[[${pageCache.pass}]]/;
+				if(!$checkPwd2.test($mima)){
+					// 密码只能有字母数字及&!@#$%^&*+-.
+					layer.msg("[[${pageCache.passalert}]]");
+					return false;
+				}
+				return true;
+			}
+			//验证密码2
+			function checkPwd2(){
+				var $mima1=$pwd.val();
+				var $mima2=$pwd2.val();
+				if($mima1!=$mima2){
+					// 两次密码输入不一致！
+					layer.msg("[[${pageCache.checkpwd2}]]");
+					return false;
+				}
+				return true;
+			}
+			
+			// 验证邮箱
+			function checkEmail(){
+				var $checkEmail=/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+				if($email.val()!=""){
+					if(!$checkEmail.test($email.val())){
+						// 邮箱不合法
+						layer.msg("请输入正确的邮箱！");
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			$("#commonData").submit(function(){
+				if(checkPlayerConut()==false){
+					return false;
+				}
+				if(checkPwd()==false){
+					return false;
+				}
+				if(checkPwd2()==false){
+					return false;
+				}
+				if(checkEmail()==false){
+					return false;
+				}
+				$.ajax({
+		             type: "POST",
+		             contentType: "application/x-www-form-urlencoded",
+		             dataType: "json",
+		             data: $('#commonData').serialize(),
+		             url: "/player/insertPlayerForPlayer",
+		             success:function(result){
+		                 if(result==1){
+		                	 $("#successAlert").css("display","block");
+		                	 // 登陆服务器时输入：<strong>/l "+$pwd.val()+ "</strong> 登陆游戏(小写的L)
+		                	 $("#successAlert div strong").html("/l "+$pwd.val()+" ");
+		                	 createCode();
+		                	 // 注册成功,帐号为：
+		                	 alert("[[${pageCache.regsuccessalert}]]"+$realname.val());
+		                 }else if(result==401){
+		                	 // 您没有输入验证码！
+		                	 alert("[[${pageCache.result401}]]");
+		             	 }else if(result==400){
+		             		 // 验证码输入错误，请重新输入！
+		                	 alert("[[${pageCache.result400}]]");
+		             	 }else if(result==402){
+		             		 // 您少输入了参数，四个空都得填！
+		                	 alert("[[${pageCache.result402}]]");
+		             	 }else if(result==403){
+		             		 // 帐号不得少于3位或大于20位！
+		                	 alert("[[${pageCache.playerlengthalert}]]");
+		             	 }else if(result==404){
+		             		 // 帐号只能有英文、数字、下滑线！
+		                	 alert("[[${pageCache.playernamealert}]]");
+		             	 }else if(result==405){
+		             		 // 密码只能有字母数字及&!@#$%^&*+-.
+		                	 alert("[[${pageCache.passalert}]]");
+		             	 }else if(result==406){
+		             		 // 两次密码输入不一致！
+		                	 alert("[[${pageCache.checkpwd2}]]");
+		             	 }else if(result==407){
+		             		 // 密码不得小于6位或大于16位
+		                	 alert("[[${pageCache.passlengthalert}]]");
+		             	 }else if(result==408){
+		             		 // 服务器内部错误，未生成验证码，请稍候重试！
+		                	 alert("[[${pageCache.result408}]]");
+		             	 }else if(result==409){
+		             		 // 服务器已经存在该用户，请换个名字吧！
+		                	 alert("[[${pageCache.playerexist}]]");
+		             	 }else if(result==410){
+		             		 // 您不是管理员，不能添加玩家！
+		                	 alert("您不是管理员，不能添加玩家");
+		             	 }else if(result==3){
+		             		 // 不是吧,阿sir，你居然没有IP！
+		                	 alert("[[${pageCache.result3}]]");
+		             	 }else if(result==4){
+		             		 // 您已经超过每天的最大注册量，限2个每日！
+		                	 alert("[[${pageCache.result4}]]");
+		             	 }else{
+		             		 $("#faildAlert").css("display","block");
+		             		 // 注册失败，请稍候重试！！！
+		                	 alert("[[${pageCache.regfaildalert}]]");
+		                 }
+		             },error:function(){
+		            	 // 服务器错误，请稍后重试！
+		            	 alert("[[${pageCache.syserror}]]");
+		             }
+		         });
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+		  <a class="btn btn-default" href="/player/selectPlayerByPage">玩家列表</a>
+		  <a class="btn btn-success" href="/player/addPage">添加账号</a>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					添加字典数据
+				</h3>
+				<p>如果道德败坏了，趣味也必然会堕落。——狄德罗</p>
+			</div>
+			<div class="col-md-8 column">
+				<form role="form" method="post" action="#" id="commonData">
+					<div class="form-group">
+						 <label for="exampleInputEmail1" th:text="${pageCache.playertitle}">用户名</label>
+						 <input name="realname" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1" th:text="${pageCache.passtitle}">密码</label>
+						 <input name="password" type="password" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1" th:text="${pageCache.pass2title}">重复密码</label>
+						 <input name="password2" type="password" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">Email</label>
+						 <input name="email" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						<label class="radio-inline">
+						  <input type="radio" checked="checked" name="adminif" value="0"> 玩家
+						</label>
+						<label class="radio-inline">
+						  <input type="radio" name="adminif" value="1"> 管理员
+						</label>
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary btn-lg">保存</button>
+						<button type="reset" class="btn btn-warning btn-lg">重置</button>
+					</div>
+				</form>
+				<div class="panl2"  id="successAlert" style="display: none;">
+					<h2 th:text="${pageCache.successalert}">注册成功</h2>
+					<div th:utext="${pageCache.regsuccessshow}"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

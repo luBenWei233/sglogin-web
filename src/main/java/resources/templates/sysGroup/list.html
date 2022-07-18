@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-字典数据类型列表</title>
+    <meta th:include="util/common :: jsAndCss"/>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					字典数据类型列表查看
+				</h3>
+				<p>自知之明是最难得的知识。——西班牙</p>
+			</div>
+			<div class="col-md-8 column">
+				<form class="form-inline" action="/sysGroup/getSysGroupVoByListPage" method="get" id="commonFormPage">
+				  <div class="form-group">
+				    <label for="exampleInputName2">字典数据类型:</label>
+				    <input th:value="${sysGroupBo.value}" name="value" type="text" class="form-control" autocomplete="off" />
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${sysGroupBo.resPage}"/>
+				  	<input name="resPageSize" th:value="${sysGroupBo.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>字典数据类型</th>
+						<th>排序</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="obj:${datas.data}">
+						<td th:text="${obj.value}"></td>
+						<td th:text="${obj.sort}"></td>
+						<td>
+							<a class="btn btn-warning btn-xs" target="_blank" th:href="@{/sysGroup/getSysGroupVoById?id=}+${obj.id}" role="button">修改</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div th:replace="util/common :: page"></div>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

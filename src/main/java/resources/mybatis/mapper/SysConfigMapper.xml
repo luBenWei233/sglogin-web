@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.sys.SysConfigMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.sys.SysConfig">
+		<id column="change" property="change"/>
+		<id column="id" property="id"/>
+		<id column="remarks" property="remarks"/>
+		<id column="updatedate" property="updatedate"/>
+		<id column="updateplayerid" property="updateplayerid"/>
+		<id column="value" property="value"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		change,id,remarks,updatedate,updateplayerid,value
+	</sql>
+	
+	<select id="selectSysConfigById" resultType="org.sg.loginweb.entity.sys.SysConfig">
+		select s.id,s.value,s.updatedate,s.change,s.remarks,p.realname updateplayername 
+		from sys_config s left join player p on s.updateplayerid=p.id 
+		where s.id=#{id}
+	</select>
+	
+	<select id="getTableExists" resultType="java.lang.String">
+		SHOW TABLES LIKE 'player'
+	</select>
+	
+	<update id="createTableBySgLogin" parameterType="java.lang.String">
+		${sql}
+	</update>
+	
+	<insert id="insertInitData" parameterType="java.lang.String">
+        ${sql}
+	</insert>
+
+</mapper>

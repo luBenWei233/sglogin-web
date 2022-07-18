@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-查看教程数据列表</title>
+    <meta th:include="util/common :: jsAndCss"/>
+    <script type="text/javascript">
+		$(function(){
+			$(".deleteCommon").click(function(){
+				var text=$(this).attr("href").split(',');
+				layer.confirm("你确定要删除 "+text[0]+" 吗?", {icon: 3, title:'提示'}, function(index){
+					$.ajax({
+			            url: "/course/deleteCourse?id="+text[1],
+			            type: "get",
+			            success: function (data) {
+			            	if(data>=1){
+			            		layer.msg('删除成功！');
+			            		window.location.reload();
+			            	}else{
+			            		layer.msg('删除失败！');
+			            	}
+			            },
+		                error : function() {
+		                	layer.open({
+								title: '提示'
+								,content: '后台出现错误，请检查！'
+							});
+		                }
+			        })
+				    layer.close(index);
+				});
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+		  <a class="btn btn-success" href="/course/selectCourseByPage">查看教程数据列表</a>
+		  <a class="btn btn-default" href="/course/addPage">添加/修改教程数据</a>
+		</div>
+			<div>
+				<h3>
+					查看教程数据列表
+					<small>对于不屈不挠的人来说，没有失败这回事。——俾斯麦</small>
+				</h3>
+			</div>
+			
+			<div>
+				<form class="form-inline" action="/course/selectCourseByPage" method="get" id="commonFormPage">
+					<div class="form-group">
+					    <label for="exampleInputName2">教程标题:</label>
+					    <input th:value="${courseBo.title}" name="title" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						<label for="exampleInputName2">管理员:</label>
+					    <select th:field="${courseBo.createplayerid}" th:switch="${courseBo.createplayerid}" class="form-control" name="createplayerid">
+					    	<option value="">--全部--</option>
+							<option th:each="p:${playerVos}" th:value="${p.id}"  th:text="${p.realname}" ></option>
+						</select>
+					 </div>
+					<div class="form-group">
+						<label for="exampleInputName2">教程类型:</label>
+					    <select th:field="${courseBo.coursetype}" th:switch="${courseBo.coursetype}" class="form-control" name="coursetype">
+					    	<option value="-1">--全部--</option>
+							<option th:each="s:${sysDatabookBos}" th:value="${s.id}"  th:text="${s.value}" ></option>
+						</select>
+					 </div>
+					 <div class="form-group">
+						<label for="exampleInputName2">是否发布:</label>
+					    <select th:field="${courseBo.valid}" th:switch="${courseBo.valid}" class="form-control" name="valid">
+					    	<option value="-1">--全部--</option>
+							<option value="1">已发布</option>
+							<option value="0">未发布</option>
+						</select>
+					 </div>
+					 <div class="form-group">
+						<label for="exampleInputName2">是否默认:</label>
+					    <select th:field="${courseBo.defaultif}" th:switch="${courseBo.defaultif}" class="form-control" name="defaultif">
+					    	<option value="-1">--全部--</option>
+							<option value="1">是</option>
+							<option value="0">否</option>
+						</select>
+					 </div>
+				  <div class="form-group">
+				    <label for="exampleInputName2">处理日期:</label>
+				    <input th:value="${courseBo.releasedate1}" type="datetime-local" step="01" name="releasedate1" class="form-control"/>
+				  	<label for="exampleInputName2">-</label>
+				    <input th:value="${courseBo.releasedate2}" type="datetime-local" step="01" name="releasedate2" class="form-control"/>
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${courseBo.resPage}"/>
+				  	<input name="resPageSize" th:value="${courseBo.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>教程标题</th>
+						<th>教程类型</th>
+						<th>是否发布</th>
+						<th>发布时间</th>
+						<th>发布人</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="d:${datas.data}">
+						<td th:text="${d.title}"></td>
+						<td th:text="${d.coursetypename}"></td>
+						<td th:text="${d.validname}"></td>
+						<td th:text="${d.releasedate}"></td>
+						<td><a th:href="@{/player/selectPlayerById?id=}+${d.createplayerid}" th:text="${d.createplayername}" target="_blank"></a></td>
+						<td>
+							<a class="btn btn-danger btn-xs deleteCommon" target="_blank"  th:href="${d.title}+','+${d.id}" role="button">删除</a>
+							<a class="btn btn-warning btn-xs" target="_blank" th:href="@{/course/addPage?id=}+${d.id}" role="button">修改</a>
+							<a class="btn btn-primary btn-xs" target="_blank" th:href="@{/course/help?id=}+${d.id}" role="button">预览</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div class="row clearfix">
+					<div class="col-md-4 column">
+						<h1>&nbsp;</h1>
+					</div>
+					<div class="col-md-8 column">
+						<div th:replace="util/common :: page"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

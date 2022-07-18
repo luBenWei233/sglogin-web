@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-服务器状态</title>
+    <meta th:include="util/common :: jsAndCss"/>
+    <script type="text/javascript">
+		$(function(){
+			getSystemInfo();
+			startSystemInfo($("input:radio:checked").val()*1000);
+			$("input[name=time]").change(function(){
+				startSystemInfo($(this).val()*1000);
+			});
+			function startSystemInfo(timeParam){
+				setInterval(function (timeParam) {
+					getSystemInfo();
+			    },timeParam);
+			}
+			function getSystemInfo(){
+				$.ajax({
+			        url: "/util/getSystemInfo",
+			        type: "get",
+			        success: function (data) {
+			        	$("#serverDate").text(data.serverDate);
+			        	$("#osname").text(data.osname);
+			        	$("#version").text(data.version);
+			        	$("#arch").text(data.arch);
+			        	$("#processNum").text(data.processNum);
+			        	$("#cpuLoad").text(data.cpuLoad+"%");
+			        	$("#memoryTotal").text(data.memoryTotal);
+			        	$("#memoryFree").text(data.memoryFree);
+			        	var $disks=null;
+			        	for(var i=0;i<data.disks.length;i++){
+			        		$disks=$disks+
+			        		"<tr>"+
+								"<td>"+data.disks[i].path+"</td>"+
+								"<td>"+data.disks[i].totalSpace+"</td>"+
+								"<td>"+data.disks[i].usableSpace+"</td>"+
+								"<td>"+data.disks[i].freeSpace+"</td>"+
+								"<td>"+data.disks[i].useRate+"</td>"+
+							"</tr>"
+			        		;
+			        	}
+			        	$("#disks").html($disks);
+			        },
+		            error : function() {
+		                layer.msg('后台出现错误，请检查！');
+		            }
+			    })
+			}
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					服务器状态
+				</h3>
+				<p>知识本身并没有告诉人们怎样运用它，运用的方法乃在书本之外——培根</p>
+			</div>
+			<div class="col-md-8 column">
+				<hr/>
+				<div class="form-group">
+					<label class="radio-inline" style="padding-left: 0px;">数据刷新频率：</label>
+					<label class="radio-inline">
+						 <input type="radio" name="time" value="5"> 5秒
+					</label>
+					<label class="radio-inline">
+						 <input checked="checked" type="radio" name="time" value="10"> 10秒
+					</label>
+					<label class="radio-inline">
+						 <input type="radio" name="time" value="15"> 15秒
+					</label>
+					<label class="radio-inline">
+						 <input type="radio" name="time" value="20"> 20秒
+					</label>
+					<label class="radio-inline">
+						 <input type="radio" name="time" value="30"> 30秒
+					</label>
+				</div>
+				<hr/>
+				<div class="form-group">
+					<p>服务器时间：<span id="serverDate">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>系统名称：<span id="osname">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>系统版本：<span id="version">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>CPU架构：<span id="arch">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>CPU核心数：<span id="processNum">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>CPU使用率：<span id="cpuLoad">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>内存总数：<span id="memoryTotal">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<p>空闲内存总数：<span id="memoryFree">xxxxx</span></p>
+				</div>
+				<div class="form-group">
+					<table class="table table-hover">
+					  	<thead>
+							<tr>
+								<th>盘符</th>
+								<th>总容量</th>
+								<th>剩余容量</th>
+								<th>已用容量</th>
+								<th>使用率</th>
+							</tr>
+						</thead>
+						<tbody id="disks">
+							<tr>
+								<td>xxxxx</td>
+								<td>xxxxx</td>
+								<td>xxxxx</td>
+								<td>xxxxx</td>
+								<td>xxxxx</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div>
+					<button id="closeWin" class="btn btn-danger btn-lg">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

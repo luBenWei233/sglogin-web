@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-文件列表</title>
+    <meta th:include="util/common :: jsAndCss"/>
+    <script type="text/javascript">
+		$(function(){
+			$(".deleteCommon").click(function(){
+				var text=$(this).attr("href").split(',');
+				layer.confirm("你确定要删除 "+text[0]+" 吗?", {icon: 3, title:'提示'}, function(index){
+					$.ajax({
+			            url: "/sysFile/deleteSysFileById?id="+text[1],
+			            type: "get",
+			            success: function (data) {
+			            	if(data>=1){
+			            		layer.msg('删除成功！');
+			            		window.location.reload();
+			            	}else{
+			            		layer.msg('删除失败！');
+			            	}
+			            },
+		                error : function() {
+		                	layer.open({
+								title: '提示'
+								,content: '后台出现错误，请检查！'
+							});
+		                }
+			        })
+				    layer.close(index);
+				});
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+			<div>
+				<h3>
+					文件列表
+					<small>哥伦布发现了一个世界，却没有用海图，他用的是在天空中释疑解惑的“信心”。——桑塔雅娜</small>
+				</h3>
+			</div>
+			<div>
+				<form class="form-inline" action="/sysFile/selectSysFileByPage" method="get" id="commonFormPage">
+					<div class="form-group">
+					    <label for="exampleInputName2">原始文件名:</label>
+					    <input th:value="${sysFileBo.filename}" name="filename" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						<label for="exampleInputName2">管理员:</label>
+					    <select th:field="${sysFileBo.createplayerid}" th:switch="${sysFileBo.createplayerid}" class="form-control" name="createplayerid">
+					    	<option value="-1">--全部--</option>
+							<option th:each="p:${playerVos}" th:value="${p.id}"  th:text="${p.realname}" ></option>
+						</select>
+					 </div>
+					 <div class="form-group">
+					    <label for="exampleInputName2">文件ID:</label>
+					    <input th:value="${sysFileBo.fileid}" name="fileid" placeholder="完整的文件ID" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+					    <label for="exampleInputName2">文件keyID:</label>
+					    <input th:value="${sysFileBo.keyid}" name="keyid" placeholder="完整的文件keyID" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+					    <label for="exampleInputName2">服务器ID:</label>
+					    <input th:value="${sysFileBo.serverid}" name="serverid" placeholder="完整的服务器ID" type="text" class="form-control" autocomplete="off" />
+					</div>
+				  <div class="form-group">
+				    <label for="exampleInputName2">创建日期:</label>
+				    <input th:value="${sysFileBo.createdate1}" type="datetime-local" step="01" name="createdate1" class="form-control"/>
+				  	<label for="exampleInputName2">-</label>
+				    <input th:value="${sysFileBo.createdate2}" type="datetime-local" step="01" name="createdate2" class="form-control"/>
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${sysFileBo.resPage}"/>
+				  	<input name="resPageSize" th:value="${sysFileBo.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>文件原始名</th>
+						<th>创建时间</th>
+						<th>服务器ID</th>
+						<th>创建人</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="d:${datas.data}">
+						<td th:text="${d.filename}"></td>
+						<td th:text="${d.createdate}"></td>
+						<td th:text="${d.serverid}"></td>
+						<td><a th:href="@{/player/selectPlayerById?id=}+${d.createplayerid}" th:text="${d.createplayername}" target="_blank"></a></td>
+						<td>
+							<a class="btn btn-danger btn-xs deleteCommon" target="_blank"  th:href="${d.filename}+','+${d.fileid}" role="button">删除</a>
+							<a class="btn btn-warning btn-xs" target="_blank" th:href="@{/sysFile/selectSysFileById?id=}+${d.fileid}" role="button">详情</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div class="row clearfix">
+					<div class="col-md-4 column">
+						<h1>&nbsp;</h1>
+					</div>
+					<div class="col-md-8 column">
+						<div th:replace="util/common :: page"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

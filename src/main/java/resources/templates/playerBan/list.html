@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-玩家封号记录</title>
+    <meta th:include="util/common :: jsAndCss"/>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+			<div>
+				<h3>
+					玩家封号记录
+					<small>要宣扬你的一切，不必用你的言语，要用你的本来面目。——卢梭</small>
+				</h3>
+			</div>
+			<div>
+				<form class="form-inline" action="/playerBan/selectPlayerBanByPage" method="get" id="commonFormPage">
+					<div class="form-group">
+					    <label for="exampleInputName2">玩家名:</label>
+					    <input th:value="${playerBanBo.playeridshow}" name="playeridshow" placeholder="完整的名字" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						<label for="exampleInputName2">管理员:</label>
+					    <select th:field="${playerBanBo.handleid}" th:switch="${playerBanBo.handleid}" class="form-control" name="handleid">
+					    	<option value="">--全部--</option>
+							<option th:each="p:${playerVos}" th:value="${p.id}"  th:text="${p.realname}" ></option>
+						</select>
+					 </div>
+					<div class="form-group">
+						<label for="exampleInputName2">封号理由:</label>
+					    <select th:field="${playerBanBo.reasonid}" th:switch="${playerBanBo.reasonid}" class="form-control" name="reasonid">
+					    	<option value="">--全部--</option>
+							<option th:each="s:${sysDatabookBos}" th:value="${s.id}"  th:text="${s.value}" ></option>
+						</select>
+					 </div>
+				  <div class="form-group">
+				    <label for="exampleInputName2">处理日期:</label>
+				    <input th:value="${playerBanBo.createdate1}" type="datetime-local" step="01" name="createdate1" class="form-control"/>
+				  	<label for="exampleInputName2">-</label>
+				    <input th:value="${playerBanBo.createdate2}" type="datetime-local" step="01" name="createdate2" class="form-control"/>
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${playerBanBo.resPage}"/>
+				  	<input name="resPageSize" th:value="${playerBanBo.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>玩家名</th>
+						<th>操作日期</th>
+						<th>操作人</th>
+						<th>封禁开始时间</th>
+						<th>封禁结束时间</th>
+						<th>封禁时长</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="d:${datas.data}">
+						<td><a th:href="@{/player/selectPlayerById?id=}+${d.playerid}" th:text="${d.playeridshow}" target="_blank"></a></td>
+						<td th:text="${d.createdate}"></td>
+						<td><a th:href="@{/player/selectPlayerById?id=}+${d.handleid}" th:text="${d.handleidshow}" target="_blank"></a></td>
+						<td th:text="${d.startdate}"></td>
+						<td th:text="${d.enddate}"></td>
+						<td th:text="${d.bantime}"></td>
+						<td>
+							<a class="btn btn-warning btn-xs" target="_blank" th:href="@{/playerBan/selectPlayerBanById?id=}+${d.id}" role="button">详情</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div class="row clearfix">
+					<div class="col-md-4 column">
+						<h1>&nbsp;</h1>
+					</div>
+					<div class="col-md-8 column">
+						<div th:replace="util/common :: page"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

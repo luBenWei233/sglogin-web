@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.CourseMapper">
+
+	<!-- 这里只能有一个ID，否则只有一条数据 -->
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.Course">
+		<id column="id" property="id"/>
+		<result column="coursetype" property="coursetype"/>
+		<result column="createdate" property="createdate"/>
+		<result column="createplayerid" property="createplayerid"/>
+		<result column="createplayername" property="createplayername"/>
+		<result column="title" property="title"/>
+		<result column="releasedate" property="releasedate"/>
+		<result column="updatedate" property="updatedate"/>
+		<result column="updateplayerid" property="updateplayerid"/>
+		<result column="valid" property="valid"/>
+		<result column="defaultif" property="defaultif"/>
+		<collection property="courseSubs" ofType="org.sg.loginweb.entity.CourseSub">
+			<result column="course_subId" property="id"/>
+			<result column="content" property="content"/>
+			<result column="type" property="type"/>
+			<result column="sort" property="sort"/>
+			<result column="courseid" property="courseid"/>
+			<result column="imgpath" property="imgpath"/>
+		</collection>
+	</resultMap>
+	
+	<resultMap id="SysDatabook" type="org.sg.loginweb.entity.sys.SysDatabook">
+		<result column="value" property="value"/>
+		<collection property="courses" ofType="org.sg.loginweb.entity.Course">
+			<result column="id" property="id"/>
+			<result column="title" property="title"/>
+		</collection>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		coursetype,createdate,createplayerid,id,title,updatedate,updateplayerid,valid
+	</sql>
+
+	<select id="selectCourseById" resultType="org.sg.loginweb.entity.Course">
+		select c.id,c.coursetype,c.title,c.valid,c.defaultif,c.releasedate,c.createdate,p.realname createplayername 
+		from course c left join player p on c.createplayerid=p.id 
+		where c.id=#{id}
+	</select>
+	
+	<select id="selectCourseInfoById" resultMap="BaseResultMap">
+		select c.id,c.coursetype,c.title,c.valid,c.defaultif,c.releasedate,c.createdate,p.realname createplayername,
+			s.id course_subId,s.content,s.type,s.sort,s.courseid,
+			(case when s.type = 2 then (select path from sys_file where fileid=s.content) else null end) imgpath 
+		from 
+			course c 
+			left join course_sub s on c.id=s.courseid 
+			left join player p on c.createplayerid=p.id 
+		where 
+		<if test="id==null or id==''">
+			c.defaultif=1
+		</if>
+		<if test="id!=null and id!=''">
+			c.id=#{id}
+		</if>
+		order by s.sort asc
+	</select>
+	
+	<select id="selectAllCourseByHelp" resultMap="SysDatabook">
+		select d.value,c.title,c.id 
+		from sys_databook d left join course c on c.coursetype = d.id 
+		where d.groupid = 1 and c.valid=1 order by c.releasedate desc
+	</select>
+	
+	<select id="selectCourseByPage" resultType="org.sg.loginweb.entity.Course">
+		select c.id,c.coursetype,c.title,c.valid,c.defaultif,c.releasedate,c.createdate,c.createplayerid,p.realname createplayername,s.value coursetypename 
+		from course c left join player p on c.createplayerid=p.id left join sys_databook s on s.id=c.coursetype
+		<where>
+			<if test="courseBo.createplayerid!=null and courseBo.createplayerid!=''">
+				and p.id=#{courseBo.createplayerid}
+			</if>
+			<if test="courseBo.coursetype!=null and courseBo.coursetype!=-1">
+				and c.coursetype=#{courseBo.coursetype}
+			</if>
+			<if test="courseBo.valid!=null and courseBo.valid!=-1">
+				and c.valid=#{courseBo.valid}
+			</if>
+			<if test="courseBo.defaultif!=null and courseBo.defaultif!=-1">
+				and c.defaultif=#{courseBo.defaultif}
+			</if>
+			<if test="courseBo.releasedate1_sql!=null and courseBo.releasedate2_sql==null">
+				<if test="courseBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(c.releasedate,'%Y%m%d') = #{courseBo.releasedate1_sql}
+				</if>
+				<if test="courseBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(releasedate,1,10),'unixepoch','+${courseBo.gmt} hours') = #{courseBo.releasedate1_sql}
+				</if>
+	    	</if>
+			<if test="courseBo.releasedate1_sql!=null and courseBo.releasedate2_sql!=null">
+				<if test="courseBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(c.releasedate,'%Y%m%d') BETWEEN #{courseBo.releasedate1_sql} and #{courseBo.releasedate2_sql}
+				</if>
+				<if test="courseBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(c.releasedate,1,10), 'unixepoch','+${courseBo.gmt} hours') BETWEEN #{courseBo.releasedate1_sql} and #{courseBo.releasedate2_sql}
+				</if>
+	    	</if>
+	    	<if test="courseBo.title!=null and courseBo.title!=''">
+	    		and c.title like '%${courseBo.title}%'
+	    	</if>
+		</where>
+		order by c.releasedate desc
+	</select>
+
+</mapper>

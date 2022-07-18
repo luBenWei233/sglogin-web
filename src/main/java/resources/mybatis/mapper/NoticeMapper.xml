@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.NoticeMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.Notice">
+		<id column="content" property="content"/>
+		<id column="createdate" property="createdate"/>
+		<id column="createplayerid" property="createplayerid"/>
+		<id column="fileid" property="fileid"/>
+		<id column="id" property="id"/>
+		<id column="iftop" property="iftop"/>
+		<id column="timing" property="timing"/>
+		<id column="title" property="title"/>
+		<id column="updatedate" property="updatedate"/>
+		<id column="updateplayerid" property="updateplayerid"/>
+		<id column="valid" property="valid"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		content,createdate,createplayerid,fileid,id,iftop,timing,title,updatedate,updateplayerid,valid
+	</sql>
+	
+	<select id="selectNoticeByPage" resultType="org.sg.loginweb.entity.Notice">
+		select n.id,n.title,n.valid,n.iftop,n.timing,n.createplayerid,p.realname createplayername 
+		from notice n left join player p on n.createplayerid=p.id 
+		<where>
+			<if test="noticeBo.id!=null and noticeBo.id!=''">
+				and n.id=#{noticeBo.id}
+			</if>
+			<if test="noticeBo.valid!=null and noticeBo.valid!=-1">
+				and n.valid=#{noticeBo.valid}
+			</if>
+			<if test="noticeBo.iftop!=null and noticeBo.iftop!=-1">
+				and n.iftop=#{noticeBo.iftop}
+			</if>
+			<if test="noticeBo.createplayerid!=null and noticeBo.createplayerid!=''">
+				and n.createplayerid=#{noticeBo.createplayerid}
+			</if>
+			<if test="noticeBo.timing1_sql!=null and noticeBo.timing2_sql==null">
+				<if test="noticeBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(n.timing,'%Y%m%d') = #{noticeBo.timing1_sql}
+				</if>
+				<if test="noticeBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(n.timing,1,10), 'unixepoch','+${noticeBo.gmt} hours') = #{noticeBo.timing1_sql}
+				</if>
+	    	</if>
+			<if test="noticeBo.timing1_sql!=null and noticeBo.timing2_sql!=null">
+				<if test="noticeBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(n.timing,'%Y%m%d') BETWEEN #{noticeBo.timing1_sql} and #{noticeBo.timing2_sql}
+				</if>
+				<if test="noticeBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(n.timing,1,10), 'unixepoch','+${noticeBo.gmt} hours') BETWEEN #{noticeBo.timing1_sql} and #{noticeBo.timing2_sql}
+				</if>
+	    	</if>
+	    	<if test="noticeBo.title!=null and noticeBo.title!=''">
+	    		and n.title like '%${noticeBo.title}%'
+	    	</if>
+		</where>
+		order by n.iftop desc,n.timing desc
+	</select>
+	
+	<select id="selectNoticeByShow" resultType="org.sg.loginweb.entity.Notice">
+		select n.id,n.title,n.content,n.timing,f.path filepath from notice n left join sys_file f on f.fileid=n.fileid 
+		<where>
+			<if test="noticeBo.id==null or noticeBo.id==''">
+				<if test="noticeBo.dataBaseType=='mysql'">
+					and n.valid=1 and n.timing&lt;now()
+				</if>
+				<if test="noticeBo.dataBaseType=='sqlite'">
+					and n.valid=1 and strftime('%s',substr(n.timing,1,10),'unixepoch','+${noticeBo.gmt} hours')&lt;strftime('%s',datetime('now','localtime'))
+				</if>
+			</if>
+			<if test="noticeBo.id!=null and noticeBo.id!=''">
+				and n.id=#{noticeBo.id}
+			</if>
+		</where>
+		order by n.iftop desc,n.timing desc
+	</select>
+	
+	<select id="selectNoticeById" resultType="org.sg.loginweb.entity.Notice">
+		select n.id,n.title,n.content,n.fileid,n.valid,n.iftop,n.timing,n.createplayerid,s.path filepath 
+		from notice n left join sys_file s on n.fileid=s.fileid 
+		where n.id=#{id}
+	</select>
+
+</mapper>

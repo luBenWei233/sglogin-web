@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-玩家列表</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			var online="[[${playerBo.online}]]";
+			if(online!=""){
+				$("select[name=online]").val(online);
+			}
+			var adminif="[[${playerBo.adminif}]]";
+			if(adminif!=""){
+				$("select[name=adminif]").val(adminif);
+			}
+			var banif="[[${playerBo.banif}]]";
+			if(banif!=""){
+				$("select[name=banif]").val(banif);
+			}
+			$(".deleteCommon").click(function(){
+				var text=$(this).attr("href").split(',');
+				layer.confirm("你确定要删除 "+text[0]+" 吗?", {icon: 3, title:'提示'}, function(index){
+					$.ajax({
+			            url: "/sysDatabook/deleteSysDatabookById?id="+text[1],
+			            type: "get",
+			            success: function (data) {
+			            	if(data==1){
+			            		layer.msg('删除成功！');
+			            		window.location.reload();
+			            	}else{
+			            		layer.msg('删除失败！');
+			            	}
+			            },
+		                error : function() {
+		                	layer.open({
+								title: '提示'
+								,content: '后台出现错误，请检查！'
+							});
+		                }
+			        })
+				    layer.close(index);
+				});
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+		  <a class="btn btn-success" href="/player/selectPlayerByPage">玩家列表</a>
+		  <a class="btn btn-default" href="/player/addPage">添加账号</a>
+		</div>
+	</div>
+	<div class="container">
+			<div>
+				<h3>
+					查看玩家列表
+					<small>乞丐并不会妒忌百万富翁，但是他肯定会妒忌收入更高的乞丐。——罗素</small>
+				</h3>
+			</div>
+			<div>
+				<form class="form-inline" action="/player/selectPlayerByPage" method="get" id="commonFormPage">
+					<div class="form-group">
+					    <label for="exampleInputName2">玩家名:</label>
+					    <input th:value="${playerBo.realname}" name="realname" type="text" class="form-control" id="exampleInputName2" autocomplete="off" />
+					</div>
+					<div class="form-group">
+					    <label for="exampleInputName2">昵称:</label>
+					    <input th:value="${playerBo.nickname}" name="nickname" type="text" class="form-control" id="exampleInputName2" autocomplete="off" />
+					</div>
+				  <div class="form-group">
+					<label for="exampleInputName2">是否在线:</label>
+				    <select class="form-control" name="online">
+				    	<option value="-1">--全部--</option>
+						<option value="0">离线</option>
+						<option value="1">在线</option>
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="exampleInputName2">角色:</label>
+				    <select class="form-control" name="adminif">
+				    	<option value="-1">--全部--</option>
+						<option value="0">玩家</option>
+						<option value="1">管理员</option>
+					</select>
+				  </div>
+				  <div class="form-group">
+					<label for="exampleInputName2">账号状态:</label>
+				    <select class="form-control" name="banif">
+				    	<option value="-1">--全部--</option>
+						<option value="0">正常</option>
+						<option value="1">封禁中</option>
+						<option value="2">永封</option>
+					</select>
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputName2">注册日期:</label>
+				    <input th:value="${playerBo.regDate1}" type="datetime-local" step="01" name="regDate1" class="form-control"/>
+				  	<label for="exampleInputName2">-</label>
+				    <input th:value="${playerBo.regDate2}" type="datetime-local" step="01" name="regDate2" class="form-control"/>
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputName2">最近登陆日期:</label>
+				    <input th:value="${playerBo.lastDate1}" type="datetime-local" step="01" name="lastDate1" class="form-control"/>
+				  	<label for="exampleInputName2">-</label>
+				    <input th:value="${playerBo.lastDate2}" type="datetime-local" step="01" name="lastDate2" class="form-control"/>
+				  </div>
+				  <div class="form-group">
+					<label for="exampleInputName2">排序方式:</label>
+				    <select class="form-control" name="orderById">
+				    	<option value="-1">--全部--</option>
+						<option value="1">注册时间降序</option>
+						<option value="2">注册时间升序</option>
+						<option value="3">最后登陆时间降序</option>
+						<option value="4">最后登陆时间升降</option>
+					</select>
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${playerBo.resPage}"/>
+				  	<input name="resPageSize" th:value="${playerBo.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>账号</th>
+						<th>昵称</th>
+						<th>注册时间</th>
+						<th>注册地</th>
+						<th>最后登陆时间</th>
+						<th>角色</th>
+						<th>账号状态</th>
+						<th>是否在线</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="d:${datas.data}">
+						<td th:text="${d.realname}"></td>
+						<td th:text="${d.nickname}"></td>
+						<td th:text="${#dates.format(d.regDate,'yyyy-MM-dd HH:mm:ss')}"></td>
+						<td th:text="${d.realip}"></td>
+						<td th:text="${d.lastDateShow}"></td>
+						<td th:text="${d.adminshow}"></td>
+						<td th:text="${d.banifshow}"></td>
+						<td th:text="${d.onlineshow}"></td>
+						<td>
+							<a class="btn btn-success btn-xs" target="_blank" th:href="@{/playerLog/selectPlayerLogByPage?playerid=}+${d.id}+'&playeridshow='+${d.realname}" role="button">记录</a>
+							<a class="btn btn-info btn-xs" target="_blank" th:href="@{/playerBan/selectPlayerBanByPage?playeridshow=}+${d.realname}" role="button">状态</a>
+							<a class="btn btn-warning btn-xs" target="_blank" th:href="@{/player/selectPlayerById?id=}+${d.id}" role="button">详情</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div class="row clearfix">
+					<div class="col-md-4 column">
+						<h1>&nbsp;</h1>
+					</div>
+					<div class="col-md-8 column">
+						<div th:replace="util/common :: page"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

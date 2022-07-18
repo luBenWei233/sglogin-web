@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.IpLimitMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.IpLimit">
+		<id column="ip" property="ip"/>
+		<id column="playername" property="playername"/>
+		<id column="regdate" property="regdate"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		ip,playername,regdate
+	</sql>
+
+	<select id="selectIpLimitByNowDayCount" resultType="int">
+		select count(*) from ip_limit where ip=#{ip} and 
+		<if test="dataBaseType=='mysql'">to_days(regdate) = to_days(now())</if>
+		<if test="dataBaseType=='sqlite'">
+			strftime('%Y%m%d',substr(regdate,1,10),'unixepoch','+${gmt} hours') = strftime('%Y%m%d',datetime('now','localtime'))
+		</if>
+	</select>
+	
+	<delete id="deleteIpLimitByOld">
+		<if test="dataBaseType=='mysql'">delete from ip_limit where regdate &lt; now()</if>
+		<if test="dataBaseType=='sqlite'">
+			delete from ip_limit where strftime('%s',substr(regdate,1,10),'unixepoch','+${gmt} hours') &lt; strftime('%s',datetime('now','localtime'))
+		</if>
+	</delete>
+
+</mapper>

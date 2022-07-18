@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-字典数据类型修改</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			$("#commonData").submit(function(){
+				var kongGe=/^[^\s]*$/;
+				if(!kongGe.test($("input[name=value]").val()) || $("input[name=value]").val()==''){
+					layer.open({
+						title: '提示'
+						,content: '“字典数据类型”不得为空或有空格！'
+					});
+					return false;
+				}
+				var sort=/^\+?[1-9][0-9]*$/;
+				if(!sort.test($("input[name=sort]").val())){
+					layer.open({
+						title: '提示'
+						,content: '“排序”只能是正整数！'
+					});
+					return false;
+				}
+				
+				$.ajax({
+		            url: "/sysGroup/updateSysGroupVoById",
+		            type: "post",
+		            data: $('#commonData').serialize(),
+		            success: function (data) {
+		            	if(data==1){
+		            		layer.msg('修改成功！');
+		            	}else{
+		            		layer.msg('修改失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					字典数据类型
+				</h3>
+				<p>酒杯里竟能蹦出友谊来！——盖伊</p>
+			</div>
+			<div class="col-md-8 column">
+				<form role="form" method="post" action="#" id="commonData">
+					<input th:value="${sysGroupVo.id}" type="hidden" name="id"/>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">字典数据类型</label><input th:value="${sysGroupVo.value}" name="value" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">排序</label><input th:value="${sysGroupVo.sort}" name="sort" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary btn-lg">确定修改</button>
+						<button type="reset" class="btn btn-warning btn-lg">重置</button>
+						<button id="closeWin" class="btn btn-danger btn-lg">关闭</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

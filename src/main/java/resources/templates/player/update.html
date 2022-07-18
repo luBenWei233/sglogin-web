@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-玩家数据操作</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			//时间计算
+			function GetDateDiff(startTime, endTime) {
+			    //将xxxx-xx-xx的时间格式，转换为 xxxx/xx/xx的格式 
+			    startTime = startTime.replace(/\-/g, "/");
+			    endTime = endTime.replace(/\-/g, "/");
+			    //将计算间隔类性字符转换为小写
+			    var sTime = new Date(startTime);      //开始时间
+			    var eTime = new Date(endTime);  //结束时间
+			    //作为除数的数字
+			    var divNum = 1000;
+			    //29天0小时0分钟5秒
+			    var secondcount=parseInt((eTime.getTime() - sTime.getTime()) / parseInt(divNum));
+			    var day=parseInt(secondcount/86400);
+			    var hour=parseInt(secondcount%86400/3600);
+			    var minute=parseInt(secondcount%86400%3600/60);
+			    var second=secondcount%86400%3600%60;
+			    return day+"天"+hour+"小时"+minute+"分钟"+second+"秒";
+			}
+			function setBanTime(){
+				var banstart=$("input[name=banstartshow]").val().replace("T"," ");
+				var banend=$("input[name=banendshow]").val().replace("T"," ");
+				if(banstart!="" && banend!=""){
+					$("#banTime").val(GetDateDiff(banstart,banend));
+					$("#surbanTime").val(GetDateDiff(Date(),banend));
+				}
+			}
+			$("input[name=banstartshow]").change(function(){
+				setBanTime();
+			});
+			$("input[name=banendshow]").change(function(){
+				setBanTime();
+			});
+			
+			//清除玩家坐标
+			$("#clearLoc").click(function(){
+				$.ajax({
+		            url: "/player/clearPlayerLoc?id="+"[[${playerVo.id}]]",
+		            type: "get",
+		            success: function (data) {
+		            	if(data>=1){
+		            		$("#world").val("");
+		            		$("#yaw").val("");
+		            		$("#pitch").val("");
+		            		$("#x").val("");
+		            		$("#z").val("");
+		            		$("#y").val("");
+		            		layer.msg('清除成功！');
+		            	}else{
+		            		layer.msg('清除失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+			});
+			
+			//修改玩家密码
+			$("#changepassword").click(function(){
+				//密码验证
+				var $mima=$("#password").val();
+				if($mima.length<"[[${pageCache.passlength1}]]" || $mima.length>"[[${pageCache.passlength2}]]"){
+					// 密码不得少于6位或大于16位！
+					layer.msg("[[${pageCache.passlengthalert}]]");
+					return false;
+				}
+				var $checkPwd=/\s/;
+				if($checkPwd.test($mima)){
+					// 密码中不能有空格
+					layer.msg("[[${pageCache.passnotspace}]]");
+					return false;
+				}
+				// ^[A-Za-z0-9&!@#$%^&*+-.]+$
+				var $checkPwd2=/[[${pageCache.pass}]]/;
+				if(!$checkPwd2.test($mima)){
+					// 密码只能有字母数字及&!@#$%^&*+-.
+					layer.msg("[[${pageCache.passalert}]]");
+					return false;
+				}
+				$.ajax({
+		            url: "/player/changePlayerPass",
+		            type: "post",
+		            data: {
+		            	id:"[[${playerVo.id}]]",
+						password:$("#password").val()
+		            },
+		            dataType: "json",
+		            success: function (data) {
+		            	if(data>=1){
+		            		layer.msg('修改成功！');
+		            	}else{
+		            		layer.msg('修改失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+			});
+			
+			$("#commonData").submit(function(){
+				//非永封必须有开始和结束时间
+				var banif=$("input[name=banif]:checked").val();
+				if(banif==1){
+					if($("input[name=banstartshow]").val()=="" || $("input[name=banendshow]").val()==""){
+						layer.open({
+							title: '提示'
+							,content: '非永封必须有开始和结束时间！'
+						});
+						return false;
+					}
+				}
+				if(banif>0){
+					if($("select[name=banid]").val()==-1){
+						layer.open({
+							title: '提示'
+							,content: '封禁玩家请选择封号理由！'
+						});
+						return false;
+					}
+				}
+				$.ajax({
+		            url: "/player/updatePlayerByid",
+		            type: "post",
+		            data: $('#commonData').serialize(),
+		            success: function (data) {
+		            	if(data>=1){
+		            		//账号正常后要初始化数据
+		            		if(banif==0){
+		            			$("input[name=banstartshow]").val("");
+		            			$("input[name=banendshow]").val("");
+		            			$("#banTime").val("");
+		            			$("#surbanTime").val("");
+		            			$("select[name=banid]").val(-1);
+		            		}
+		            		layer.msg('修改成功！');
+		            	}else{
+		            		layer.msg('修改失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<h3>玩家数据操作</h3>
+		<p>人的一生是短的，但如果卑劣地过这一生，就太长了。——莎士比亚</p>
+		<div class="row clearfix">
+			<div class="col-md-6 column">
+				<div class="form-group">
+						 <label for="exampleInputEmail1">账号</label>
+						 <input th:value="${playerVo.realname}" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">昵称</label>
+						 <input th:value="${playerVo.nickname}" type="text" class="form-control" autocomplete="off"  disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">Email</label>
+						 <input th:value="${playerVo.email}" type="text" class="form-control" autocomplete="off"  disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">注册时间</label>
+						 <input th:value="${#dates.format(playerVo.regDate,'yyyy-MM-dd HH:mm:ss')}" type="text" class="form-control" autocomplete="off"  disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">注册时IP与所属地区</label>
+						 <div>
+							 <input th:value="${playerVo.realip}" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:40%;display:inline;"/>
+							 <input th:value="${playerVo.realipname}" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:59%;display:inline;"/>
+						 </div>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">近期登陆时间</label>
+						 <input th:value="${playerVo.lastDateShow}" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">近期登陆IP</label>
+						 <input th:value="${playerVo.lastip}" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">近期登陆所属地区</label>
+						 <input th:value="${playerVo.lastipname}" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">近期退出登陆时间</label>
+						 <input th:value="${playerVo.exitDateShow}" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">玩家在线总分钟数</label>
+						 <input th:value="${playerVo.countTime}" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+			</div>
+			<div class="col-md-6 column">
+				<div class="form-group">
+					<label for="exampleInputEmail1">修改玩家密码</label>
+					<div>
+						<input id="password" type="text" class="form-control" autocomplete="off" placeholder="玩家密码不回显(非明文)" style="width:73%;display:inline;"/>
+						<button id="changepassword" class="btn btn-warning btn-sm" style="width:25%;display:inline;">修改玩家密码</button>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="exampleInputEmail1">玩家离线所在世界</label>
+					<div>
+						<input th:value="${playerVo.world}" id="world" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:73%;display:inline;"/>
+						<button id="clearLoc" class="btn btn-warning btn-sm" style="width:25%;display:inline;">清除玩家坐标</button>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="exampleInputEmail1">玩家离线视角:yaw、pitch</label>
+					<div>
+						<input th:value="${playerVo.yaw}" id="yaw" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:49.5%;display:inline;"/>
+						<input th:value="${playerVo.pitch}" id="pitch" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:49.5%;display:inline;"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="exampleInputEmail1">玩家离线坐标:x、z、y</label>
+					<div>
+						<input th:value="${playerVo.x}" id="x" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:32.5%;display:inline;"/>
+						<input th:value="${playerVo.z}" id="z" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:33%;display:inline;"/>
+						<input th:value="${playerVo.y}" id="y" type="text" class="form-control" autocomplete="off" disabled="disabled" style="width:33%;display:inline;"/>
+					</div>
+				</div>
+				<form role="form" method="post" action="#" id="commonData">
+					<input type="hidden" th:value="${playerVo.id}" name="id"/>
+					<div class="form-group">
+						<label class="radio-inline">
+						  <input th:checked="${playerVo.adminif==0}" type="radio" name="adminif" value="0"> 玩家
+						</label>
+						<label class="radio-inline">
+						  <input th:checked="${playerVo.adminif==1}" type="radio" name="adminif" value="1"> 管理员
+						</label>
+					</div>
+					<div class="form-group">
+						<label class="radio-inline">
+						  <input th:checked="${playerVo.banif==0}" type="radio" name="banif" value="0"> 正常
+						</label>
+						<label class="radio-inline">
+						  <input th:checked="${playerVo.banif==1}" type="radio" name="banif" value="1"> 封禁中
+						</label>
+						<label class="radio-inline">
+						  <input th:checked="${playerVo.banif==2}" type="radio" name="banif" value="2"> 永封
+						</label>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">封禁开始日期---结束日期</label>
+						 <div>
+							 <input th:value="${playerVo.banstartshow}" type="datetime-local" step="01" name="banstartshow" class="form-control" style="width:49.5%;display:inline;"/>
+							 <input th:value="${playerVo.banendshow}" type="datetime-local" step="01" name="banendshow" class="form-control" style="width:49.5%;display:inline;"/>
+						 </div>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">封禁总时长</label>
+						 <input th:value="${playerVo.banTime}" id="banTime" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">封禁剩余时长</label>
+						 <input th:value="${playerVo.surbanTime}" id="surbanTime" type="text" class="form-control" autocomplete="off" disabled="disabled"/>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">被办理由</label>
+						 <select th:field="${playerVo.banid}" th:switch="${playerVo.banid}" class="form-control" name="banid">
+						 	<option value="-1">--选择--</option>
+						 	<option th:each="s:${sysDatabookBos}" th:value="${s.id}"  th:text="${s.value}" ></option>
+						 </select>
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary btn-lg">确定修改</button>
+						<button type="reset" class="btn btn-warning btn-lg">重置</button>
+						<button id="closeWin" class="btn btn-danger btn-lg">关闭</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

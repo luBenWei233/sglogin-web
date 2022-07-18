@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.PlayerLogMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.PlayerLog">
+		<id column="exitdate" property="exitdate"/>
+		<id column="id" property="id"/>
+		<id column="logindate" property="logindate"/>
+		<id column="logintime" property="logintime"/>
+		<id column="playerid" property="playerid"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		exitdate,id,logindate,logintime,playerid
+	</sql>
+
+
+</mapper>

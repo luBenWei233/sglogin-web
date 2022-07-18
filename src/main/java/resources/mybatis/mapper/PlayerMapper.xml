@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sg.loginweb.mapper.PlayerMapper">
+
+	<resultMap id="BaseResultMap" type="org.sg.loginweb.entity.Player">
+		<id column="banend" property="banend"/>
+		<id column="banif" property="banif"/>
+		<id column="banstart" property="banstart"/>
+		<id column="email" property="email"/>
+		<id column="exitDate" property="exitDate"/>
+		<id column="id" property="id"/>
+		<id column="lastDate" property="lastDate"/>
+		<id column="lastip" property="lastip"/>
+		<id column="nickname" property="nickname"/>
+		<id column="online" property="online"/>
+		<id column="pitch" property="pitch"/>
+		<id column="realip" property="realip"/>
+		<id column="realname" property="realname"/>
+		<id column="regDate" property="regDate"/>
+		<id column="username" property="username"/>
+		<id column="world" property="world"/>
+		<id column="x" property="x"/>
+		<id column="y" property="y"/>
+		<id column="yaw" property="yaw"/>
+		<id column="z" property="z"/>
+		<id column="password" property="password"/>
+	</resultMap>
+
+	<sql id="Base_column_List">
+		password,banend,banif,banstart,email,exitDate,id,lastDate,lastip,nickname,online,pitch,realip,realname,regDate,username,world,x,y,yaw,z
+	</sql>
+
+	<select id="selectPlayerByPage" resultType="org.sg.loginweb.entity.Player">
+		select id,nickname,realname,regDate,realip,lastDate,banif,online,adminif from player 
+		<where>
+			<if test="playerBo.banif!=-1 and playerBo.banif!=null">
+				and banif=#{playerBo.banif}
+			</if>
+			<if test="playerBo.online!=-1 and playerBo.online!=null">
+				and online=#{playerBo.online}
+			</if>
+			<if test="playerBo.adminif!=-1 and playerBo.adminif!=null">
+				and adminif=#{playerBo.adminif}
+			</if>
+			<if test="playerBo.regDate1_sql!=null and playerBo.regDate2_sql==null">
+				<if test="playerBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(regDate,'%Y%m%d') = #{playerBo.regDate1_sql}
+				</if>
+				<if test="playerBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(regDate,1,10), 'unixepoch','+${playerBo.gmt} hours') = #{playerBo.regDate1_sql}
+				</if>
+	    	</if>
+	    	<if test="playerBo.regDate1_sql!=null and playerBo.regDate2_sql!=null">
+	    		<if test="playerBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(regDate,'%Y%m%d') BETWEEN #{playerBo.regDate1_sql} and #{playerBo.regDate2_sql}
+				</if>
+				<if test="playerBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(regDate,1,10), 'unixepoch','+${playerBo.gmt} hours') BETWEEN #{playerBo.regDate1_sql} and #{playerBo.regDate2_sql}
+				</if>
+	    	</if>
+	    	<if test="playerBo.lastDate1_sql!=null and playerBo.lastDate2_sql==null">
+	    		<if test="playerBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(lastDate,'%Y%m%d') = #{playerBo.lastDate1_sql}
+				</if>
+				<if test="playerBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(lastDate,1,10), 'unixepoch','+${playerBo.gmt} hours') = #{playerBo.lastDate1_sql}
+				</if>
+	    	</if>
+	    	<if test="playerBo.lastDate1_sql!=null and playerBo.lastDate2_sql!=null">
+	    		<if test="playerBo.dataBaseType=='mysql'">
+					and DATE_FORMAT(lastDate,'%Y%m%d') BETWEEN #{playerBo.lastDate1_sql} and #{playerBo.lastDate2_sql}
+				</if>
+				<if test="playerBo.dataBaseType=='sqlite'">
+					and strftime('%Y%m%d',substr(lastDate,1,10), 'unixepoch','+${playerBo.gmt} hours') BETWEEN #{playerBo.lastDate1_sql} and #{playerBo.lastDate2_sql}
+				</if>
+	    	</if>
+	    	<if test="playerBo.username!=null and playerBo.username!=''">
+	    		and username like '%${playerBo.username}%'
+	    	</if>
+	    	<if test="playerBo.nickname!=null and playerBo.nickname!=''">
+	    		and nickname like '%${playerBo.nickname}%'
+	    	</if>
+	    	<!-- 排序方式 1注册时间降序、2注册时间升序、3最后登陆时间降序、4最后登陆时间升降 -->
+		    <if test="playerBo.orderById==1">
+		    	order by regDate desc
+		    </if>
+		    <if test="playerBo.orderById==2">
+		    	order by regDate asc
+		    </if>
+		    <if test="playerBo.orderById==3">
+		    	order by lastDate desc
+		    </if>
+		    <if test="playerBo.orderById==4">
+		    	order by lastDate asc
+		    </if>
+		</where>
+	</select>
+
+</mapper>

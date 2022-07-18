@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-修改公告数据</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			$("#commonData").submit(function(){
+				if($("input[name=title]").val()==null || $("input[name=title]").val()==''){
+					layer.open({
+						title: '提示'
+						,content: '公告标题不得为空！'
+					});
+					return false;
+				}
+				if($("textarea[name=content]").val()==null || $("textarea[name=content]").val()==''){
+					layer.open({
+						title: '提示'
+						,content: '公告内容不得为空！'
+					});
+					return false;
+				}
+				
+				$.ajax({
+		            url: "/notice/updateNotice",
+		            type: "post",
+		            data: $('#commonData').serialize(),
+		            success: function (data) {
+		            	if(data>=1){
+		            		layer.msg('修改成功！');
+		            	}else{
+		            		layer.msg('修改失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+				return false;
+			});
+			
+			$(".uploadImg").change(function(){
+				 var filePath = $(this).val(), //获取到input的value，里面是文件的路径
+				 fileFormat = filePath.substring(filePath.lastIndexOf(".")).toLowerCase(),
+				 src = window.URL.createObjectURL(this.files[0]); //转成可以在本地预览的格式
+				 // 检查是否是图片
+				 if(!fileFormat.match(/.png|.jpg|.jpeg/)) {
+					 layer.msg('上传错误,文件格式必须为：png/jpg/jpeg');
+				 	return false;
+				 }else{
+				 	$(this).next().css('display','block');
+				 	$(this).next().attr('src', src);
+				 }
+				 var $fileId=$(this);
+				 var formData = new FormData();
+				 formData.append("file",this.files[0]);
+				   $.ajax({
+				    type: 'post',
+				    url: "/sysFile/insertSysFile", //上传文件的请求路径必须是绝对路劲
+				     data: formData,
+				     cache: false,
+				     processData: false,
+				     contentType: false,
+				     async :false,
+				     success: function (data) {
+			            	if(data.code>=1){
+			            		$fileId.siblings(".fileid").val(data.data);
+			            		insertCourseSub($fileId);
+			            	}else{
+			            		layer.msg('操作失败！');
+			            	}
+			            },
+		                error : function() {
+		                	layer.open({
+								title: '提示'
+								,content: '后台出现错误，请检查！'
+							});
+		                }
+			        })
+			});
+			
+			/*显示和隐藏提示框*/
+			var $contentValue='';
+			var toolShow=true;
+			$("#editTool").mouseover(function(){
+				toolShow = false;
+			});
+			$(".editTool>p").click(function(){
+				$("#editTool").css("display","none");
+			});
+			$(".mobile>p").click(function(){
+				$("#editTool").css("display","none");
+			});
+			$(document).on("focus","textarea[name=content]",function(){
+				toolShow=true;
+				editToolShow();
+				$contentValue=$(this).val();
+			});
+			$(document).on("blur","textarea[name=content]",function(){
+				if(toolShow){
+					editToolClose();
+				}
+			});
+			/*-----------------------------------------------------*/
+			//预览
+			$("#noticeShowBtn").click(function(){
+				$("#noticeShowShow").html(
+					"<h2 class='h1'>公告预览</h1>"+
+					"<hr/>"+
+					"<h2 class='h2'>"+$("input[name=title]").val()+"&nbsp;<small>[[${pageCache.releasedate}]]"+$("input[name=timing]").val()+"</small></h2>"+
+					"<div class='showDiv'>"+$("textarea[name=content]").val()+"</div>"
+				);
+				$(".imgAdapt").clone().appendTo("#noticeShowShow");
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-4 column">
+				<h3>
+					修改公告数据
+				</h3>
+				<p>两情若是久长时，又岂在朝朝暮暮。——秦观</p>
+			</div>
+			<div class="col-md-8 column">
+				<form role="form" method="post" action="#" id="commonData">
+					<input type="hidden" name="id" th:value="${noticeVo.id}"/>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">公告标题</label>
+						 <input name="title" th:value="${noticeVo.title}" type="text" class="form-control" autocomplete="off" />
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">公告内容</label>
+						 <textarea name="content" th:text="${noticeVo.content}" rows="8" cols="" class="form-control"></textarea>
+					</div>
+					<div class="form-group">
+						<label class="radio-inline">
+						  <input type="radio" th:checked="${noticeVo.valid==1}" name="valid" id="inlineRadio1" value="1"> 发布
+						</label>
+						<label class="radio-inline">
+						  <input type="radio" th:checked="${noticeVo.valid==0}" name="valid" id="inlineRadio2" value="0"> 未发布
+						</label>
+					</div>
+					<div class="form-group">
+						<label class="radio-inline">
+						  <input type="radio" th:checked="${noticeVo.iftop==1}" name="iftop" id="inlineRadio1" value="1"> 置顶
+						</label>
+						<label class="radio-inline">
+						  <input type="radio" th:checked="${noticeVo.iftop==0}" name="iftop" id="inlineRadio2" value="0"> 不置顶
+						</label>
+					</div>
+					<div class="form-group">
+						 <label for="exampleInputEmail1">定时发布</label>
+						 <div>
+							 <input th:value="${noticeVo.timing}" type="datetime-local" step="01" name="timing" class="form-control"/>
+						 </div>
+					</div>
+					<div class="form-group">
+						<label>请上传一张图片</label>
+						<input type="file" class="uploadImg"/>
+						<img class="imgAdapt" th:src="${noticeVo.filepath}" style="display: block;">
+						<input type="hidden" th:value="${noticeVo.fileid}" class="fileid" name="fileid">
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary btn-lg">确认修改</button>
+						<a href="#mao" id="noticeShowBtn" class="btn btn-success btn-lg">预览</a>
+						<button type="reset" class="btn btn-warning btn-lg">重置</button>
+						<button id="closeWin" class="btn btn-danger btn-lg">关闭</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<a id="mao">&nbsp;</a>
+	<div class="container" id="noticeShowShow">
+		
+	</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+<nav th:replace="util/common :: editTool"/></nav>
+</html>

@@ -1,0 +1,95 @@
+.back_color{
+	background-color: rgba(232,232,232,0.3);
+}
+.div_100h{
+	height: 100%;
+}
+.course-sort{
+	overflow: hidden;
+}
+.course-sort button{
+	float: right;
+}
+.imgShow{
+	width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+.imgAdapt{
+	width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.editTool{
+	font-size:15px;
+	overflow: hidden;
+}
+.editTool ul{
+	float: left;
+	margin: 5px 20px 15px 0px;
+	padding: 0px;
+}
+.editTool ul li{
+	list-style-type: none;
+}
+.editTool ul li:first-child{
+	font-size: 16px;
+}
+.editTool ul:last-child{
+	width:100%;
+	overflow: hidden;
+}
+.editTool ul:last-child li:first-child{
+	width:100%;
+	float: none;
+	text-align: left;
+	padding: 0px;
+}
+.editTool ul:last-child li{
+	width:9%;
+	float: left;
+	padding: 5px;
+	text-align: center;
+}
+.editTool>p{
+	margin-top:5px;
+	font-size:16px;
+	font-weight:900;
+	text-align: right;
+}
+.editTool>p:hover{
+	cursor: pointer;
+}
+#editTool{
+	display: none;
+}
+.checkCode{
+	margin-left: 20px;
+}
+.mobile ul{
+	margin: 0px;
+	padding: 0px 0px 5px 0px;
+}
+.mobile li{
+	padding: 0px;
+	margin: 0px;
+	list-style-type: none;
+}
+.mobile>p{
+	margin-top:5px;
+	font-size:16px;
+	font-weight:900;
+	text-align: right;
+}
+.mobile>p:hover{
+	cursor: pointer;
+}
+.adminFoot{
+	text-align: center;
+	color: #C0C0C0;
+}
+
+
+
+

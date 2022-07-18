@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<title>[[${pageCache.webname}]]</title>
+	<link th:href="@{/css/main.css}" rel="stylesheet">
+	<style type="text/css">
+		.showDiv{
+			margin-bottom: 8px;
+		}
+		.h1{
+			font-size: 24px;
+		}
+		.h1:hover{
+			cursor: pointer;
+		}
+		.h2{
+			font-size: 20px;
+			line-height: 40px;
+		}
+	</style>
+	<script type="text/javascript" th:src="@{/bootstrap/js/jquery.min.js}" ></script>
+	<script type="text/javascript">
+		$(function(){
+			$(".suspension_div").hide();
+			var $suspension=$("#suspension");
+			$suspension.css("width","[[${pageCache.helpmenuwidth}]]");
+			setSuspensionPosition();
+			$(".suspension_li").mouseover(function(){
+				var $suspension_div=$(this).find(".suspension_div")
+				$suspension_div.css("display","block").show();
+				var $divX = $(this).offset().top;
+				var $divY = $(this).offset().left-$suspension_div.width();
+				$suspension_div.offset({top:$divX,left:$divY})
+			});
+			$(".suspension_li").mouseout(function(){
+				var $suspension_div=$(this).find(".suspension_div");
+				$suspension_div.css("display","none").hide();
+			});
+			
+			function setSuspensionPosition(){
+				var $currentH = $(window).scrollTop();
+				var $currentW = $(window).width();
+				if($currentW>1410){
+					$currentW=($currentW-1170)/2+1170+$suspension.width()+10;
+				}
+				$currentW=$currentW-$suspension.width();
+				$suspension.offset({top:$currentH+50,left:$currentW});
+			}
+			
+			window.onscroll = function(){
+				setSuspensionPosition();
+			}
+			window.onresize = function(){
+				setSuspensionPosition();
+			}
+			
+			selectCourseInfoByIdForPlayer("[[${param.id}]]");
+			
+			$(".suspension_div>div>p").click(function(){
+				selectCourseInfoByIdForPlayer($(this).find("#id").val());
+			});
+			
+			var $href=null;
+			function selectCourseInfoByIdForPlayer($id){
+				$.ajax({
+				    type: 'get',
+				    url: "/course/selectCourseInfoByIdForPlayer?id="+$id, 
+				    success: function (data) {
+				    	if(data!=null){
+				    		$("#title").html(data.title+"&nbsp;<small>"+"[[${pageCache.releasedate}]]"+data.releasedate+"</small>");
+				            $("#course").html(data.coursecontent);
+				            $href=window.location.href.split("?id=")[0]+"?id="+data.id;
+				            $("#copyUrl").text("[[${pageCache.helpmenu2}]]");
+				    	}
+			        },
+		            error : function() {
+						alert("[[${pageCache.syserror}]]");
+		           }
+			    })
+			}
+			
+			//复制此链接
+			$("#copyUrl").click(function(){
+				if (navigator && navigator.clipboard && navigator.clipboard.writeText){
+					$(this).text("[[${pageCache.helpmenu3}]]");
+					return navigator.clipboard.writeText($href);
+				}
+				return alert("[[${pageCache.clipboardnot}]]");
+			});
+			//回首页
+			$("#home").click(function(){
+				window.open("/");
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class="container">
+		<nav><h1 class="h1" id="home">[[${pageCache.helppagename}]]</h1></nav>
+	</div>
+	<div class="container">
+		<h2 class="h2" id="title">请检查重试<small></small></h2>
+	</div>
+	<div class="container" id="course">
+		<p>无此教程！！！</p>
+	</div>
+	<footer><div class="footer" th:utext="${pageCache.copyright}"></div></footer>
+</body>
+<div id="suspension" class="suspension">
+	<ul>
+		<li id="notice"><a href="/notice/noticePage" target="_blank"><strong th:utext="${pageCache.helpmenu1}">公告</strong></a></li>
+		<li class="suspension_li" th:each="d:${datas}">[[${d.value}]]
+			<div class="suspension_div">
+				<div>
+					<p th:each="c:${d.courses}">[[${c.title}]]<input type="hidden" id="id" th:value="${c.id}"/></p>
+				</div>
+			</div>
+		</li>
+		<li id="copyUrl" th:utext="${pageCache.helpmenu2}">复制链接</li>
+	</ul>
+</div>
+</html>

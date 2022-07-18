@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-教程处理-步骤2</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			if("[[${courseVo.courseSubVos}]]"=="[]"){
+				addEdit($("#course_sub_edit"),1,1);
+			}
+			$(document).on('change','.uploadImg', function() {//当chooseImage的值改变时，执行此函数
+				 var filePath = $(this).val(), //获取到input的value，里面是文件的路径
+				 fileFormat = filePath.substring(filePath.lastIndexOf(".")).toLowerCase(),
+				 src = window.URL.createObjectURL(this.files[0]); //转成可以在本地预览的格式
+				 // 检查是否是图片
+				 if(!fileFormat.match(/.png|.jpg|.jpeg/)) {
+					 layer.msg('上传错误,文件格式必须为：png/jpg/jpeg');
+				 	return false;
+				 }else{
+				 	$(this).next().css('display','block');
+				 	$(this).next().attr('src', src);
+				 }
+				 var $fileId=$(this);
+				 var formData = new FormData();
+				 formData.append("file",this.files[0]);
+				   $.ajax({
+				    type: 'post',
+				    url: "/sysFile/insertSysFile", //上传文件的请求路径必须是绝对路劲
+				     data: formData,
+				     cache: false,
+				     processData: false,
+				     contentType: false,
+				     async :false,
+				     success: function (data) {
+			            	if(data.code>=1){
+			            		$fileId.siblings(".content").val(data.data);
+			            		insertCourseSub($fileId);
+			            	}else{
+			            		layer.msg('操作失败！');
+			            	}
+			            },
+		                error : function() {
+		                	layer.open({
+								title: '提示'
+								,content: '后台出现错误，请检查！'
+							});
+		                }
+			        })
+			});
+			
+			//新增和修改教程
+			function insertCourseSub($node){
+				$node.parent().parent("form").submit(function(){
+					if($node.siblings(".content").val()==null || $node.siblings(".content").val()==''){
+						return false;
+					}
+				});
+				var formData = new FormData();
+				var $id=$node.parent().siblings(".id").val()
+				formData.append("id",$id);
+				var $type=$node.parent().siblings(".course-sort").find("input:radio:checked").val();
+				if($type==2){
+					formData.append("content",$node.siblings(".content").val());
+				}else{
+					formData.append("content",$node.val());
+					$node.text($node.val());
+				}
+				formData.append("type",$type);
+				var $sort=$node.parent().siblings(".sort").val()
+				formData.append("sort",$sort);
+				formData.append("courseid","[[${courseVo.id}]]");
+				$.ajax({
+		            url: "/courseSub/insertCourseSub",
+		            type: "post",
+		            data: formData,
+		            processData:false,// 使用formData传参很重要的配置
+		         	contentType:false,// 使用formData传参很重要的配置
+		            success: function (data) {
+		            	if(data.code>=1){
+		            		layer.msg('操作成功！');
+		            		$node.parent().siblings(".id").val(data.data);
+		            		if($id==null || $id==''){
+		            			changeSort($node.parent().parent().parent("div"),$sort);
+		            		}
+		            	}else{
+		            		layer.msg('操作失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+		        return false;
+			};
+			
+			/*显示和隐藏提示框*/
+			var $contentValue='';
+			var toolShow=true;
+			$("#editTool").mouseover(function(){
+				toolShow = false;
+			});
+			$(".editTool>p").click(function(){
+				$("#editTool").css("display","none");
+			});
+			$(".mobile>p").click(function(){
+				$("#editTool").css("display","none");
+			});
+			$(document).on("focus","#course_sub_edit .content",function(){
+				toolShow=true;
+				editToolShow();
+				$contentValue=$(this).val();
+			});
+			$(document).on("blur","#course_sub_edit .content",function(){
+				if(toolShow){
+					editToolClose();
+				}
+				if($(this).val()==null || $(this).val()==''){
+					return false;
+				}
+				if($(this).val()==$contentValue){
+					return false;
+				}
+				insertCourseSub($(this));
+			});
+			/*-----------------------------------------------------*/
+			
+			//这块真是服了，jquery失效，得找到操作后的父节点
+			//上移
+			$(document).on("click","#course_sub_edit .up-move",function () {
+				var $prev=$(this).parent().parent().parent().prev("div");
+				if($prev.length<=0){
+					return false;
+				}
+				var $current=$(this).parent().parent().parent("div");
+				if($current.find(".course_sub_from").find(".id").val()=='' || $prev.find(".course_sub_from").find(".id").val()==''){
+					layer.msg('不能交换未保存的内容！');
+					return false;
+				}
+				var fromData=new FormData();
+				fromData.append("id",$current.find(".course_sub_from").find(".id").val());
+				fromData.append("sort",$prev.find(".course_sub_from").find(".sort").val());
+				fromData.append("id",$prev.find(".course_sub_from").find(".id").val());
+				fromData.append("sort",$current.find(".course_sub_from").find(".sort").val());
+				var $tmpHtml=$prev.html();
+				$prev.html($current.html());
+				$current.html($tmpHtml);
+				changeCourseSubLoc(fromData);
+				return false;
+			});
+			
+			//下移
+			$(document).on("click","#course_sub_edit .down-move",function () {
+				var $next=$(this).parent().parent().next("div");
+				if($next.length<=0){
+					return false;
+				}
+				var $current=$(this).parent().parent("div");
+				if($current.find(".course_sub_from").find(".id").val()=='' || $next.find(".course_sub_from").find(".id").val()==''){
+					layer.msg('不能交换未保存的内容！');
+					return false;
+				}
+				//要提交的数据
+				var fromData=new FormData();
+				fromData.append("id",$current.find(".course_sub_from").find(".id").val());
+				fromData.append("sort",$next.find(".course_sub_from").find(".sort").val());
+				fromData.append("id",$next.find(".course_sub_from").find(".id").val());
+				fromData.append("sort",$current.find(".course_sub_from").find(".sort").val());
+				var $tmpHtml=$next.html();
+				$next.html($current.html());
+				$current.html($tmpHtml);
+				changeCourseSubLoc(fromData);
+				return false;
+			});
+			
+			//保存后顺序调整
+			function changeSort($node,$sort){
+				var $sub_div=$node.siblings(".course_sub");
+				for(var i=0;i<$sub_div.length;i++){
+					var $tmp=$sub_div.eq(i).find(".sort").val();
+					if($tmp>=$sort){
+						$sub_div.eq(i).find(".sort").val($tmp*1+1*1)
+					}
+				}
+			}
+			
+			//数据库修改位置
+			function changeCourseSubLoc(formData){
+				$.ajax({
+		            url: "/courseSub/changeCourseSubLoc",
+		            type: "post",
+		            data: formData,
+		            processData:false,// 使用formData传参很重要的配置
+		         	contentType:false,// 使用formData传参很重要的配置
+		            success: function (data) {
+		            	if(data<2){
+		            		layer.msg('位置交换失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+			}
+			
+			//添加新编辑区域
+			function addEdit($node,$sort,$initial){
+				var html=
+				"<div class='course_sub'>"+
+				"<hr/>"+
+				"<form action='#' method='post' class='course_sub_from'>"+
+				"	<input type='hidden' class='id'/>"+
+				"	<input type='hidden' class='sort' value='"+$sort+"'/>"+
+				"	<div class='form-group course-sort'>"+
+				"		<label class='radio-inline'>"+
+				"			<input type='radio' class='type' name='type' value='1' checked='checked'> 文本/html"+
+				"		</label>"+
+				"		<label class='radio-inline'>"+
+				"			<input type='radio' class='type' name='type' value='2'> 图片"+
+				"		</label>"+
+				"		<button class='btn btn-primary btn-sm up-move'>↑</button>"+
+				"		<button class='btn btn-danger btn-sm nodeDel' title='移除本节点' style='margin-right: 30px;'>X</button>"+
+				"	</div>"+
+				"	<div class='form-group'>"+
+				"		<label>内容</label>"+
+				"		<textarea name='content' rows='8' cols='' class='form-control content'></textarea>"+
+				"	</div>"+
+				"</form>"+
+				"<div class='form-group course-sort'>"+
+				"	<button class='btn btn-primary btn-sm down-move'>↓</button>"+
+				"	<button class='btn btn-success btn-sm addEditNode' title='添加节点' style='margin-right: 30px;'>+</button>"+
+				"</div>"+
+				"</div>"
+				if($initial==0){
+					$(html).insertAfter($node);
+				}else{
+					$node.html(html);
+				}
+				return false;
+			}
+			
+			$(document).on("click","#course_sub_edit .addEditNode",function () {
+				var $node=$(this).parent().parent("div");
+				var $sub_div=$("#course_sub_edit").find(".course_sub");
+				for(var i=0;i<$sub_div.length;i++){
+					var $tmp=$sub_div.eq(i).find(".id").val();
+					if($tmp==null || $tmp==''){
+						layer.msg('有未保存的节点，新增失败！');
+						return false;
+					}
+				}
+				var $sort=$node.find(".course_sub_from").find(".sort").val()*1+1*1;
+				addEdit($node,$sort,0);
+			});
+			
+			//类型切换
+			$(document).on("change","#course_sub_edit .type",function () {
+				var $changeNode=$(this).parent().parent().next();
+				if($changeNode.find("textarea").length>0){
+					if($(this).val()!=2){
+						return false;
+					}
+				}
+				if($(this).val()==2){
+					$changeNode.html(
+						"<label>请上传一张图片/重新上传</label>"+
+						"<input type='file' class='uploadImg'/>"+
+						"<img alt='' class='imgShow' style='display: block;'>"+
+						"<input type='hidden' class='content' name='content'>"
+					);
+				}else{
+					$changeNode.html(
+						"<label>内容</label>"+
+						"<textarea name='content' rows='8' cols='' class='form-control content'></textarea>"
+					);
+				}
+			});
+			
+			$(document).on("click","#course_sub_edit .nodeDel",function () {
+				var $id=$(this).parent().siblings(".id").val();
+				var $node=$(this).parent().parent().parent("div");
+				if($id==''){
+					$node.remove();
+				}
+				if($id!=''){
+					layer.confirm("你确定要删除该节点吗?", {icon: 3, title:'提示'}, function(index){
+						$.ajax({
+				            url: "/courseSub/deleteCourseSubLoc?id="+$id,
+				            type: "get",
+				            success: function (data) {
+				            	if(data>=1){
+				            		$node.remove();
+				            		layer.msg('移除成功！');
+				            	}else{
+				            		layer.msg('移除失败！');
+				            	}
+				            },
+			                error : function() {
+			                	layer.open({
+									title: '提示'
+									,content: '后台出现错误，请检查！'
+								});
+			                }
+				        })
+					});
+				}
+				return false;
+			});
+			
+			//确认发布
+			$("#courseSubmit").click(function(){
+				var formData = new FormData();
+				formData.append("valid",1);
+				formData.append("id","[[${courseVo.id}]]");
+				$.ajax({
+		            url: "/course/insertCourse",
+		            type: "post",
+		            data: formData,
+		            processData: false,
+				    contentType: false,
+		            success: function (result) {
+		            	if(result.code>=1){
+		            		layer.msg('发布成功！');
+		            	}else{
+		            		layer.msg('发布失败！');
+		            	}
+		            },
+	                error : function() {
+	                	layer.open({
+							title: '提示'
+							,content: '后台出现错误，请检查！'
+						});
+	                }
+		        })
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+		  <a class="btn btn-default" href="/course/selectCourseByPage">查看教程数据列表</a>
+		  <a class="btn btn-success" href="/course/addPage">添加/修改教程数据</a>
+		</div>
+	</div>
+	<div class="container">
+		<h3>
+			添加教程
+		</h3>
+		<p>想摘玫瑰花的人必须注意刺。——波斯谚语</p>
+		<div class="form-group">
+			<label>教程标题</label>
+			<input th:value="${courseVo.title}" type="text" class="form-control" disabled="disabled" />
+		</div>
+		<div id="course_sub_edit">
+			<div class="course_sub" th:each="s:${courseVo.courseSubVos}">
+				<hr/>
+				<form action="#" method="post" class="course_sub_from">
+					<input type="hidden" class="id" th:value="${s.id}"/>
+					<input type="hidden" class="sort" th:value="${s.sort}"/>
+					<div class="form-group course-sort">
+						<label class="radio-inline">
+							<input th:checked="${s.type==1}" type="radio" class="type" name="type" value="1" checked="checked"> 文本/html
+						</label>
+						<label class="radio-inline">
+							<input th:checked="${s.type==2}" type="radio" class="type" name="type" value="2"> 图片
+						</label>
+						<button class="btn btn-primary btn-sm up-move">↑</button>
+						<button class="btn btn-danger btn-sm nodeDel" title="移除本节点" style="margin-right: 30px;">X</button>
+					</div>
+					<div class="form-group" th:if="${s.type!=2}">
+						<label>内容</label>
+						<textarea th:text="${s.content}" name="content" rows="8" cols="" class="form-control content"></textarea>
+					</div>
+					<div class="form-group" th:if="${s.type==2}">
+						<label>请上传一张图片/重新上传</label>
+						<input type="file" class="uploadImg"/>
+						<img alt="" th:src="${s.imgpath}" class="imgShow" style="display: block;">
+						<input th:value="${s.content}" type="hidden" class="content" name="content">
+					</div>
+				</form>
+				<div class="form-group course-sort">
+					<button class="btn btn-primary btn-sm down-move">↓</button>
+					<button class="btn btn-success btn-sm addEditNode" title="添加节点" style="margin-right: 30px;">+</button>
+				</div>
+			</div>
+		</div>
+		<div style="width: 220px;margin: 0px auto;">
+			<button class="btn btn-warning btn-lg" id="courseSubmit">确认发布</button>
+			<a target="_blank" th:href="@{/course/help?id=}+${courseVo.id}" role="button" class="btn btn-primary btn-lg">预览</a>
+		</div>
+	</div>
+	<h1>&nbsp;</h1>
+	<h1>&nbsp;</h1>
+	<h1>&nbsp;</h1>
+	<h1>&nbsp;</h1>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+<nav th:replace="util/common :: editTool"/></nav>
+</html>

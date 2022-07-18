@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-用户登陆日志</title>
+    <meta th:include="util/common :: jsAndCss"/>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<h3>
+			<strong>[[${playerLogBo.playeridshow}]]</strong>-用户登陆日志
+		</h3>
+		<p>谁穿上谦卑这件衣裳，谁就是最美最俊的人。——蒙哥马利</p>
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>登陆时间</th>
+					<th>退出时间</th>
+					<th>在线分钟</th>
+					<th>IP</th>
+					<th>地区</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="obj:${datas.data}">
+					<td th:text="${obj.logindate}"></td>
+					<td th:text="${obj.exitdate}"></td>
+					<td th:text="${obj.logintime}"></td>
+					<td th:text="${obj.ip}"></td>
+					<td th:text="${obj.ipcity}"></td>
+				</tr>
+			</tbody>
+			</table>
+			<div class="row clearfix">
+				<div class="col-md-4 column">
+					<h1>&nbsp;</h1>
+				</div>
+				<div class="col-md-8 column">
+					<div th:replace="util/common :: page"></div>
+				</div>
+			</div>
+		</div>
+	<form class="form-inline" action="/playerLog/selectPlayerLogByPage" method="get" id="commonFormPage">
+		<div style="display: none;">
+			<input name="playerid" th:value="${playerLogBo.playerid}"/>
+			<input name="playeridshow" th:value="${playerLogBo.playeridshow}"/>
+			<input name="resPage" th:value="${playerLogBo.resPage}"/>
+			<input name="resPageSize" th:value="${playerLogBo.resPageSize}"/>
+		</div>
+	</form>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>

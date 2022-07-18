@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="div_100h">
+<head>
+	<title>SGLogin-字典数据列表</title>
+    <meta th:include="util/common :: jsAndCss"/>
+	<script type="text/javascript">
+		$(function(){
+			var groupid="[[${sysDatabookBo.groupid}]]";
+			if(groupid!=""){
+				$("select[name=groupid]").val(groupid);
+			}
+			var valid="[[${sysDatabookBo.valid}]]";
+			if(valid!=""){
+				$("select[name=valid]").val(valid);
+			}
+			$(".deleteCommon").click(function(){
+				var text=$(this).attr("href").split(',');
+				layer.confirm("你确定要删除 "+text[0]+" 吗?", {icon: 3, title:'提示'}, function(index){
+					$.ajax({
+			            url: "/sysDatabook/deleteSysDatabookById?id="+text[1],
+			            type: "get",
+			            success: function (data) {
+			            	if(data==1){
+			            		layer.msg('删除成功！');
+			            		window.location.reload();
+			            	}else{
+			            		layer.msg('删除失败！');
+			            	}
+			            },
+		                error : function() {
+		                	layer.open({
+								title: '提示'
+								,content: '后台出现错误，请检查！'
+							});
+		                }
+			        })
+				    layer.close(index);
+				});
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div th:include="util/common :: top"/></div>
+	<div class="container">
+		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+		  <a class="btn btn-success" href="/sysDatabook/sysDatabookList">查看字典数据列表</a>
+		  <a class="btn btn-default" href="/sysDatabook/addPage">添加字典数据</a>
+		</div>
+	</div>
+	<div class="container">
+			<div>
+				<h3>
+					查看字典数据列表
+					<small>问渠哪得清如许，为有源头活水来。——朱熹</small>
+				</h3>
+			</div>
+			<div>
+				<form class="form-inline" action="/sysDatabook/sysDatabookList" method="get" id="commonFormPage">
+				  <div class="form-group">
+					<label for="exampleInputName2">字典类型:</label>
+				    <select class="form-control" name="groupid">
+				    	<option value="-1">--全部--</option>
+						<option th:each="s:${sysGroupVos}" th:value="${s.id}"  th:text="${s.value}" ></option>
+					</select>
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputName2">字典值:</label>
+				    <input th:value="${sysDatabookBo.value}" name="value" type="text" class="form-control" id="exampleInputName2" autocomplete="off" />
+				  </div>
+				<div class="form-group">
+				  	<label for="exampleInputName2">是否显示:</label>
+				    <select name="valid" class="form-control">
+				      <option value="-1">--全部--</option>
+					  <option value="1">显示</option>
+					  <option value="0">隐藏</option>
+					</select>
+				  </div>
+				  <div style="display: none;">
+				  	<input name="resPage" th:value="${sysDatabookBo.resPage}"/>
+				  	<input name="resPageSize" th:value="${sysDatabookBo.resPageSize}"/>
+				  </div>
+				  <button type="submit" class="btn btn-primary">查询</button>
+				</form>
+				<table class="table table-hover">
+				  	<thead>
+					<tr>
+						<th>字典类型</th>
+						<th>字典值</th>
+						<th>是否显示</th>
+						<th>创建人</th>
+						<th>创建时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="s:${datas.data}">
+						<td th:text="${s.sysgroupvalue}"></td>
+						<td th:text="${s.value}"></td>
+						<td th:text="${s.validshow}"></td>
+						<td th:text="${s.createname}"></td>
+						<td th:text="${#dates.format(s.createdate,'yyyy-MM-dd HH:mm:ss')}"></td>
+						<td>
+							<a class="btn btn-danger btn-xs deleteCommon" th:href="${s.value}+','+${s.id}" role="button">删除</a>
+							<a class="btn btn-warning btn-xs" target="_blank" th:href="@{/sysDatabook/selectSysDatabookById?id=}+${s.id}" role="button">修改</a>
+						</td>
+					</tr>
+				</tbody>
+				</table>
+				<div class="row clearfix">
+					<div class="col-md-4 column">
+						<h1>&nbsp;</h1>
+					</div>
+					<div class="col-md-8 column">
+						<div th:replace="util/common :: page"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<h1>&nbsp;</h1>
+	<nav th:replace="util/common :: adminFoot"></nav>
+</body>
+</html>
